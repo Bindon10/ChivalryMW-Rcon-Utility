@@ -1,0 +1,65 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:app="using:ChivRcon.App"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="700"
+             x:Class="ChivRcon.App.Views.AuditView">
+
+    <Grid Margin="26,22,26,26" RowDefinitions="Auto,Auto,Auto,*,Auto">
+
+        <TextBlock Grid.Row="0" Classes="sectionTitle" Text="Audit" />
+        <TextBlock Grid.Row="1" Classes="hint" Margin="0,4,0,16" TextWrapping="Wrap"
+                   Text="Admin activity, one file per month. &quot;sent&quot; is what this client asked for; &quot;audit&quot; is the server confirming what it did. A sent line with no matching audit line means the server ignored the command." />
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="10" Margin="0,0,0,14">
+            <ComboBox x:Name="MonthBox" Width="150" Height="34"
+                      PlaceholderText="Month" SelectionChanged="Month_SelectionChanged" />
+            <TextBox x:Name="FilterBox" Width="280" Height="34" PlaceholderText="Filter…" />
+            <CheckBox x:Name="SentBox" Classes="compact" Content="sent" IsChecked="True"
+                      VerticalAlignment="Center" />
+            <CheckBox x:Name="ServerBox" Classes="compact" Content="audit" IsChecked="True"
+                      VerticalAlignment="Center" />
+            <TextBlock x:Name="StatusText" Classes="hint" VerticalAlignment="Center"
+                       Margin="8,0,0,0" Text="" />
+        </StackPanel>
+
+        <Border Grid.Row="3" Classes="card" Padding="0" ClipToBounds="True">
+            <Grid RowDefinitions="Auto,*">
+                <!-- Column widths repeated in the item template below. Change both together. -->
+                <Border Grid.Row="0" Classes="headerStrip">
+                    <Grid ColumnDefinitions="170,70,120,200,*">
+                        <TextBlock Grid.Column="0" Classes="colHeader" Text="When" />
+                        <TextBlock Grid.Column="1" Classes="colHeader" Text="Kind" />
+                        <TextBlock Grid.Column="2" Classes="colHeader" Text="Admin" />
+                        <TextBlock Grid.Column="3" Classes="colHeader" Text="Action" />
+                        <TextBlock Grid.Column="4" Classes="colHeader" Text="Detail" />
+                    </Grid>
+                </Border>
+
+                <ListBox Grid.Row="1" x:Name="Entries" Classes="rows" Margin="0,4,0,6">
+                    <ListBox.ItemTemplate>
+                        <DataTemplate x:DataType="app:AuditEntry">
+                            <Grid ColumnDefinitions="170,70,120,200,*">
+                                <TextBlock Grid.Column="0" Classes="cellDim" Text="{Binding TimeText}" />
+                                <TextBlock Grid.Column="1" Classes="cellDim" Text="{Binding Kind}" />
+                                <TextBlock Grid.Column="2" Classes="cellDim" Text="{Binding Admin}" />
+                                <TextBlock Grid.Column="3" Classes="cell" Text="{Binding Action}" />
+                                <TextBlock Grid.Column="4" Classes="cellDim" Text="{Binding Detail}" />
+                            </Grid>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                </ListBox>
+            </Grid>
+        </Border>
+
+        <StackPanel Grid.Row="4" Orientation="Horizontal" Spacing="8" Margin="0,14,0,0">
+            <Button x:Name="RefreshBtn" Classes="ghost" Height="34" MinWidth="100"
+                    Content="Refresh" Click="Refresh_Click" />
+            <Button x:Name="FolderBtn" Classes="ghost" Height="34" MinWidth="130"
+                    Content="Open folder" Click="Folder_Click" />
+            <Button x:Name="CopyBtn" Classes="ghost" Height="34" MinWidth="130"
+                    Content="Copy shown" Click="Copy_Click" />
+        </StackPanel>
+    </Grid>
+</UserControl>

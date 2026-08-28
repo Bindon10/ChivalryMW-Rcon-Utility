@@ -1,0 +1,84 @@
+<!--
+    SystemDecorations is deprecated in Avalonia 12 in favour of WindowDecorations, and this
+    raises AVLN5001. Left alone deliberately: the deprecation message names the replacement
+    property but not how its values map, the old property still works, and Supremacy Launcher
+    is on the same call. Change it only against the real WindowDecorations enum, not a guess.
+-->
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:app="using:ChivRcon.App"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="1240" d:DesignHeight="800"
+        x:Class="ChivRcon.App.Views.MainWindow"
+        Title="Chivalry RCON Utility"
+        Width="1240" Height="800"
+        MinWidth="1000" MinHeight="640"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource BgWindow}"
+        SystemDecorations="BorderOnly">
+
+    <Grid RowDefinitions="36,*">
+
+        <!-- ============ TITLE BAR ============ -->
+        <Grid Grid.Row="0"
+              Background="{StaticResource BgPanel}"
+              ColumnDefinitions="Auto,Auto,*,Auto"
+              PointerPressed="TitleBar_PointerPressed"
+              DoubleTapped="TitleBar_DoubleTapped">
+
+            <TextBlock Grid.Column="0" Text="Chivalry RCON" VerticalAlignment="Center"
+                       Margin="14,0,0,0" FontWeight="SemiBold" FontSize="13"
+                       Foreground="{StaticResource TextPrimary}" />
+
+            <TextBlock Grid.Column="1" Text="SlumpMod / BangMod" VerticalAlignment="Center"
+                       Margin="8,0,0,0" FontSize="11.5"
+                       Foreground="{StaticResource TextFaint}" />
+
+            <StackPanel Grid.Column="3" Orientation="Horizontal" Margin="0,0,4,0">
+                <Button Classes="chrome" Content="&#x2013;" Click="Minimize_Click" />
+                <Button Classes="chrome" Content="&#x25A1;" Click="Maximize_Click" />
+                <Button Classes="chrome close" Content="&#x2715;" Click="Close_Click" />
+            </StackPanel>
+        </Grid>
+
+        <!-- ============ BODY ============ -->
+        <Grid Grid.Row="1" ColumnDefinitions="190,*">
+
+            <!-- Sidebar -->
+            <Border Grid.Column="0"
+                    Background="{StaticResource BgPanel}"
+                    BorderBrush="{StaticResource BorderBrush}"
+                    BorderThickness="0,0,1,0">
+                <Grid RowDefinitions="*,Auto" Margin="10,12">
+                    <ListBox Grid.Row="0" x:Name="Nav" Classes="nav"
+                             SelectionChanged="Nav_SelectionChanged">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="app:NavItem">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock Grid.Column="0" Text="{Binding Title}" />
+                                    <Ellipse Grid.Column="1" Width="6" Height="6"
+                                             VerticalAlignment="Center" Margin="6,0,0,0"
+                                             Fill="{StaticResource Accent}"
+                                             IsVisible="{Binding HasBadge}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <StackPanel Grid.Row="1" Margin="12,10,0,0">
+                        <Border BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0"
+                                Margin="0,0,0,10" />
+                        <TextBlock x:Name="StatusLine" Classes="statusLine" Text="Disconnected" />
+                        <TextBlock x:Name="AddressLine" Classes="hint" Margin="0,3,0,0"
+                                   Text="no server set" />
+                        <TextBlock x:Name="MapLine" Classes="hint" Margin="0,2,0,0" Text="" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- Active page -->
+            <ContentControl Grid.Column="1" x:Name="PageHost" />
+        </Grid>
+    </Grid>
+</Window>

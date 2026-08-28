@@ -1,0 +1,83 @@
+is_global = true
+build_property.EnableAotAnalyzer = 
+build_property.EnableSingleFileAnalyzer = true
+build_property.EnableTrimAnalyzer = 
+build_property.IncludeAllContentForSelfExtract = 
+build_property.VerifyReferenceTrimCompatibility = 
+build_property.VerifyReferenceAotCompatibility = 
+build_property.AvaloniaNameGeneratorIsEnabled = true
+build_property.AvaloniaNameGeneratorBehavior = InitializeComponent
+build_property.AvaloniaNameGeneratorDefaultFieldModifier = internal
+build_property.AvaloniaNameGeneratorFilterByPath = *
+build_property.AvaloniaNameGeneratorFilterByNamespace = *
+build_property.AvaloniaNameGeneratorViewFileNamingStrategy = NamespaceAndClassName
+build_property.AvaloniaNameGeneratorAttachDevTools = true
+build_property.AvaloniaUseCompiledBindingsByDefault = true
+build_property.AvaloniaMainPackageVersion = 12.1.1
+build_property.AvaloniaPreviewerNetCoreToolPath = C:\Users\Bindon\.nuget\packages\avalonia\12.1.1\buildTransitive\\..\tools\net8.0\designer\Avalonia.Designer.HostApp.dll
+build_property.AvaloniaResourcePaths = C:\Projects\ChivRcon\ChivRcon.App\App.axaml,C:\Projects\ChivRcon\ChivRcon.App\Theme\Controls.axaml,C:\Projects\ChivRcon\ChivRcon.App\Theme\Palette.axaml,C:\Projects\ChivRcon\ChivRcon.App\Views\AuditView.axaml,C:\Projects\ChivRcon\ChivRcon.App\Views\BansView.axaml,C:\Projects\ChivRcon\ChivRcon.App\Views\ConsoleView.axaml,C:\Projects\ChivRcon\ChivRcon.App\Views\DashboardView.axaml,C:\Projects\ChivRcon\ChivRcon.App\Views\LoadoutView.axaml,C:\Projects\ChivRcon\ChivRcon.App\Views\MainWindow.axaml,C:\Projects\ChivRcon\ChivRcon.App\Views\MapView.axaml,C:\Projects\ChivRcon\ChivRcon.App\Views\NotesDialog.axaml,C:\Projects\ChivRcon\ChivRcon.App\Views\PickPlayerDialog.axaml,C:\Projects\ChivRcon\ChivRcon.App\Views\Prompt.axaml,C:\Projects\ChivRcon\ChivRcon.App\Views\ReferenceView.axaml,C:\Projects\ChivRcon\ChivRcon.App\Views\ServerView.axaml,C:\Projects\ChivRcon\ChivRcon.App\Views\TournamentView.axaml
+build_property.TargetFramework = net10.0
+build_property.TargetFrameworkIdentifier = .NETCoreApp
+build_property.TargetFrameworkVersion = v10.0
+build_property.TargetPlatformMinVersion = 
+build_property.UsingMicrosoftNETSdkWeb = 
+build_property.ProjectTypeGuids = 
+build_property.InvariantGlobalization = 
+build_property.PlatformNeutralAssembly = 
+build_property.EnforceExtendedAnalyzerRules = 
+build_property.EntryPointFilePath = 
+build_property._SupportedPlatformList = Linux,macOS,Windows
+build_property.RootNamespace = ChivRcon.App
+build_property.ProjectDir = C:\Projects\ChivRcon\ChivRcon.App\
+build_property.EnableComHosting = 
+build_property.EnableGeneratedComInterfaceComImportInterop = 
+build_property.EffectiveAnalysisLevelStyle = 10.0
+build_property.EnableCodeStyleSeverity = 
+
+[C:/Projects/ChivRcon/ChivRcon.App/App.axaml]
+build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
+
+[C:/Projects/ChivRcon/ChivRcon.App/Theme/Controls.axaml]
+build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
+
+[C:/Projects/ChivRcon/ChivRcon.App/Theme/Palette.axaml]
+build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
+
+[C:/Projects/ChivRcon/ChivRcon.App/Views/AuditView.axaml]
+build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
+
+[C:/Projects/ChivRcon/ChivRcon.App/Views/BansView.axaml]
+build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
+
+[C:/Projects/ChivRcon/ChivRcon.App/Views/ConsoleView.axaml]
+build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
+
+[C:/Projects/ChivRcon/ChivRcon.App/Views/DashboardView.axaml]
+build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
+
+[C:/Projects/ChivRcon/ChivRcon.App/Views/LoadoutView.axaml]
+build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
+
+[C:/Projects/ChivRcon/ChivRcon.App/Views/MainWindow.axaml]
+build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
+
+[C:/Projects/ChivRcon/ChivRcon.App/Views/MapView.axaml]
+build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
+
+[C:/Projects/ChivRcon/ChivRcon.App/Views/NotesDialog.axaml]
+build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
+
+[C:/Projects/ChivRcon/ChivRcon.App/Views/PickPlayerDialog.axaml]
+build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
+
+[C:/Projects/ChivRcon/ChivRcon.App/Views/Prompt.axaml]
+build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
+
+[C:/Projects/ChivRcon/ChivRcon.App/Views/ReferenceView.axaml]
+build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
+
+[C:/Projects/ChivRcon/ChivRcon.App/Views/ServerView.axaml]
+build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml
+
+[C:/Projects/ChivRcon/ChivRcon.App/Views/TournamentView.axaml]
+build_metadata.AdditionalFiles.SourceItemGroup = AvaloniaXaml

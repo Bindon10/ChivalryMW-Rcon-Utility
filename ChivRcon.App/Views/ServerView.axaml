@@ -1,0 +1,84 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="700"
+             x:Class="ChivRcon.App.Views.ServerView">
+
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="26,22,26,26">
+
+            <TextBlock Classes="sectionTitle" Text="Server" />
+            <TextBlock Classes="hint" Margin="0,4,0,16"
+                       Text="Where to connect, and what to remember between sessions." />
+
+            <!-- ============ BOOKMARKS ============ -->
+            <!-- Above Connection deliberately: picking a bookmark fills the fields below it,
+                 so the reading order matches the order you actually use them in. -->
+            <Border Classes="card" Padding="0" Margin="0,0,0,16">
+                <StackPanel>
+                    <TextBlock Classes="cardHeader" Text="BOOKMARKS" Margin="16,14,16,0" />
+                    <Border BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0"
+                            Margin="0,12,0,0" />
+
+                    <StackPanel Orientation="Horizontal" Spacing="8" Margin="16,14,16,0">
+                        <ComboBox x:Name="Bookmarks" Width="260" />
+                        <Button x:Name="SaveBookmarkBtn" Classes="mini" MinWidth="72"
+                                Content="Save" Click="SaveBookmark_Click" />
+                        <Button x:Name="DeleteBookmarkBtn" Classes="mini" MinWidth="72"
+                                Content="Delete" Click="DeleteBookmark_Click" />
+                    </StackPanel>
+
+                    <TextBlock x:Name="BookmarkNote" Classes="hint" Margin="16,8,16,14"
+                               Text="Picking one fills in the connection below. Stored in %AppData%\ChivRconUtility\settings.json — passwords are base64-encoded there, obfuscated rather than encrypted." />
+                </StackPanel>
+            </Border>
+
+            <!-- ============ CONNECTION ============ -->
+            <Border Classes="card" Padding="0">
+                <StackPanel>
+                    <TextBlock Classes="cardHeader" Text="CONNECTION" Margin="16,14,16,0" />
+                    <Border BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0"
+                            Margin="0,12,0,0" />
+
+                    <Grid Margin="16,14" ColumnDefinitions="*,140,*" RowDefinitions="Auto,Auto,Auto">
+
+                        <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,10,0">
+                            <TextBlock Classes="label" Text="Host" Margin="0,0,0,6" />
+                            <TextBox x:Name="HostBox" PlaceholderText="127.0.0.1" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="0" Grid.Column="1" Margin="0,0,10,0">
+                            <TextBlock Classes="label" Text="RCON port" Margin="0,0,0,6" />
+                            <NumericUpDown x:Name="PortBox" Minimum="1" Maximum="65535" Value="27960"
+                                           FormatString="0" Increment="1" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="0" Grid.Column="2">
+                            <TextBlock Classes="label" Text="Admin password" Margin="0,0,0,6" />
+                            <TextBox x:Name="PasswordBox" PasswordChar="•" PlaceholderText="AdminPassword" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3"
+                                    Orientation="Horizontal" Spacing="18" Margin="0,14,0,0">
+                            <CheckBox x:Name="SavePassword" Classes="compact" Content="Remember password" />
+                            <CheckBox x:Name="AutoReconnectBox" Classes="compact"
+                                      Content="Auto-reconnect" IsChecked="True" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3"
+                                    Orientation="Horizontal" Spacing="12" Margin="0,16,0,0">
+                            <Button x:Name="ConnectBtn" Classes="primary" Height="38" MinWidth="150"
+                                    Content="Connect" Click="Connect_Click" />
+                            <TextBlock x:Name="StatusText" Classes="value" VerticalAlignment="Center"
+                                       Text="Disconnected" />
+                        </StackPanel>
+                    </Grid>
+
+                    <TextBlock Classes="hint" Margin="16,0,16,14"
+                               Text="RCON authenticates against [Engine.AccessControl] AdminPassword. The listener is a level actor, so the connection drops on every map change — auto-reconnect covers that." />
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

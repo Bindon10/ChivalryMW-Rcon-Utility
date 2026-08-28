@@ -1,0 +1,95 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:app="using:ChivRcon.App"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="700"
+             x:Class="ChivRcon.App.Views.ConsoleView">
+
+    <Grid Margin="26,22,26,26" RowDefinitions="Auto,Auto,*,Auto">
+
+        <TextBlock Grid.Row="0" Classes="sectionTitle" Text="Console" />
+        <TextBlock Grid.Row="1" Classes="hint" Margin="0,4,0,16"
+                   Text="Everything the server reports, and everything you send it. Commands and their results land in the same feed." />
+
+        <!-- ============ FEED ============ -->
+        <Border Grid.Row="2" Classes="card" Padding="0" ClipToBounds="True">
+            <Grid RowDefinitions="Auto,*,Auto">
+                <TextBlock Grid.Row="0" Classes="cardHeader" Text="LIVE EVENTS" Margin="16,14,16,10" />
+
+                <Border Grid.Row="1" Classes="feed" Margin="14,0,14,0">
+                    <ScrollViewer x:Name="FeedScroll" HorizontalScrollBarVisibility="Disabled">
+                        <ItemsControl x:Name="Feed">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="app:LogLine">
+                                    <TextBlock Classes="logLine"
+                                               Text="{Binding Text}"
+                                               Foreground="{Binding Brush}" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Border>
+
+                <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="16,10,16,12" Spacing="14">
+                    <TextBlock Classes="label" Text="Show:" VerticalAlignment="Center" />
+                    <CheckBox x:Name="ShowKills" Classes="compact" Content="Kills" IsChecked="True" />
+                    <CheckBox x:Name="LogToFile" Classes="compact" Content="Log to file" IsChecked="True" />
+                    <TextBlock Classes="hint" VerticalAlignment="Center"
+                               Text="&#x2192; %AppData%\ChivRconUtility\logs" />
+                    <Button Classes="mini" Content="Clear" Click="Clear_Click" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ============ SEND ============ -->
+        <Border Grid.Row="3" Classes="card" Padding="0" Margin="0,14,0,0">
+            <StackPanel>
+                <TextBlock Classes="cardHeader" Text="SEND" Margin="16,14,16,0" />
+                <Border BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0" Margin="0,12,0,0" />
+
+                <Grid Margin="16,14" RowDefinitions="Auto,Auto,Auto"
+                      ColumnDefinitions="86,*,Auto,Auto">
+
+                    <TextBlock Grid.Row="0" Grid.Column="0" Classes="label" Text="Broadcast"
+                               VerticalAlignment="Center" />
+                    <TextBox   Grid.Row="0" Grid.Column="1" x:Name="Message" Margin="0,0,8,0"
+                               PlaceholderText="Message to everyone on the server" KeyDown="Message_KeyDown" />
+                    <Button    Grid.Row="0" Grid.Column="2" x:Name="SayBtn" Classes="primary"
+                               Height="32" MinWidth="86" Content="Say" Click="Say_Click" />
+                    <Button    Grid.Row="0" Grid.Column="3" x:Name="SayBigBtn" Classes="ghost"
+                               Height="32" MinWidth="96" Margin="8,0,0,0"
+                               Content="Say (big)" Click="SayBig_Click" />
+
+                    <TextBlock Grid.Row="1" Grid.Column="0" Classes="label" Text="Command"
+                               VerticalAlignment="Center" Margin="0,10,0,0" />
+                    <!--
+                        AutoCompleteBox, not ComboBox: Avalonia's ComboBox cannot be typed
+                        into, and the WinForms version allowed an arbitrary command. This
+                        keeps the suggestion list while still accepting anything.
+                    -->
+                    <AutoCompleteBox Grid.Row="1" Grid.Column="1" x:Name="Command" Margin="0,10,8,0"
+                                     HorizontalAlignment="Stretch" FilterMode="Contains"
+                                     MinimumPrefixLength="0"
+                                     PlaceholderText="Console command to run on the server" />
+                    <Button    Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="2" x:Name="RunBtn"
+                               Classes="primary" Height="32" MinWidth="190" Margin="0,10,0,0"
+                               Content="Run on server" Click="Run_Click" />
+
+                    <TextBlock Grid.Row="2" Grid.Column="0" Classes="label" Text="Map"
+                               VerticalAlignment="Center" Margin="0,10,0,0" />
+                    <AutoCompleteBox Grid.Row="2" Grid.Column="1" x:Name="Maps" Margin="0,10,8,0"
+                                     HorizontalAlignment="Stretch" FilterMode="Contains"
+                                     MinimumPrefixLength="0"
+                                     PlaceholderText="Map name (the rotation populates on connect)" />
+                    <Button    Grid.Row="2" Grid.Column="2" x:Name="ChangeMapBtn" Classes="primary"
+                               Height="32" MinWidth="86" Margin="0,10,0,0"
+                               Content="Change" Click="ChangeMap_Click" />
+                    <Button    Grid.Row="2" Grid.Column="3" x:Name="NextMapBtn" Classes="ghost"
+                               Height="32" MinWidth="96" Margin="8,10,0,0"
+                               Content="Next map" Click="NextMap_Click" />
+                </Grid>
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

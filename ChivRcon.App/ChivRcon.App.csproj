@@ -1,0 +1,132 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <AssemblyName>ChivRconUtility</AssemblyName>
+    <RootNamespace>ChivRcon.App</RootNamespace>
+    <AssemblyTitle>Chivalry RCON Utility</AssemblyTitle>
+    <Description>RCON admin client for Chivalry: Medieval Warfare dedicated servers.</Description>
+  </PropertyGroup>
+
+  <!--
+    Release publish settings, tuned to minimise antivirus false positives.
+
+    Single-file but NOT compressed: a compressed bundle is a small stub wrapping a
+    high-entropy blob that unpacks and executes, which is structurally indistinguishable
+    from a packer and one of the most-reported false positive shapes. Costs ~30-40% size.
+    Trimming rewrites every assembly and buys little at this size.
+
+    Gated on a RID being passed rather than on Release alone, so plain
+    "dotnet build -c Release" keeps its current behaviour and output path.
+    release.cmd passes -r win-x64.
+  -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release' AND '$(RuntimeIdentifier)' != ''">
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <EnableCompressionInSingleFile>false</EnableCompressionInSingleFile>
+    <PublishTrimmed>false</PublishTrimmed>
+
+    <!-- Avalonia needs its native libraries; bundling them avoids loose DLLs beside the exe. -->
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+
+    <DebugType>embedded</DebugType>
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+  </PropertyGroup>
+
+  <!--
+    Signing hook, Azure Artifact Signing (formerly Trusted Signing). Same setup as Supremacy
+    Launcher, including the account and certificate profile.
+
+    There is no thumbprint and no .pfx: the key lives in Microsoft's HSM and the certificate
+    is reissued daily with a 72-hour lifetime, so a build names an account plus a certificate
+    profile instead. Nothing sensitive is stored here — credentials come from the environment.
+
+    To sign:
+        dotnet publish ChivRcon.App -c Release -r win-x64 ^
+            -p:ArtifactSigningAccount=Bindon -p:ArtifactSigningProfile=Supremacy
+
+    Both blank means signing is skipped, so Debug builds and anyone without Azure access are
+    unaffected. Needs the "sign" global tool and an "az login" session; see release.cmd.
+  -->
+  <PropertyGroup>
+    <ArtifactSigningAccount></ArtifactSigningAccount>
+    <ArtifactSigningProfile></ArtifactSigningProfile>
+
+    <!-- Region prefix must match the signing account's Azure region. -->
+    <ArtifactSigningEndpoint>https://wus2.codesigning.azure.net</ArtifactSigningEndpoint>
+
+    <!--
+      Not optional. The signing certificate expires 72 hours after issue; the RFC-3161
+      countersignature is the only reason a release still validates a month later.
+    -->
+    <TimestampUrl>http://timestamp.acs.microsoft.com/</TimestampUrl>
+
+    <!--
+      The tool uses DefaultAzureCredential, whose chain reaches ManagedIdentityCredential
+      before the Azure CLI. Off an Azure VM that probes an unroutable 169.254.169.254 and
+      raises AuthenticationFailedException, aborting the chain instead of falling through to
+      the az session. Naming the credential skips the probe. Needs Azure.Identity 1.15+;
+      "dev" is the fallback on older versions, EnvironmentCredential for CI.
+    -->
+    <ArtifactSigningCredential>AzureCliCredential</ArtifactSigningCredential>
+  </PropertyGroup>
+
+  <Target Name="SignPublishedBinary"
+          AfterTargets="Publish"
+          Condition="'$(ArtifactSigningAccount)' != '' AND '$(ArtifactSigningProfile)' != ''">
+    <!--
+      Absolute path: the signing tool treats its file argument as a glob resolved against the
+      current directory, and a relative path that fails to match exits non-zero with nothing
+      attached.
+    -->
+    <PropertyGroup>
+      <_PublishedExe>$([System.IO.Path]::GetFullPath($([System.IO.Path]::Combine('$(MSBuildProjectDirectory)','$(PublishDir)$(AssemblyName).exe'))))</_PublishedExe>
+    </PropertyGroup>
+
+    <Message Importance="high" Text="Signing $(_PublishedExe) as $(ArtifactSigningAccount)/$(ArtifactSigningProfile)" />
+
+    <!--
+      Output is captured and re-raised as an MSBuild error. Message-level Exec output is
+      dropped by -v q and by the terminal logger, which is how a 403 or an unready profile
+      arrives as a bare "exited with code 2". Errors are the one channel every logger shows.
+    -->
+    <Exec Command="sign code artifact-signing --artifact-signing-endpoint $(ArtifactSigningEndpoint) --artifact-signing-account $(ArtifactSigningAccount) --artifact-signing-certificate-profile $(ArtifactSigningProfile) --timestamp-url $(TimestampUrl) --verbosity information &quot;$(_PublishedExe)&quot;"
+          EnvironmentVariables="AZURE_TOKEN_CREDENTIALS=$(ArtifactSigningCredential)"
+          ConsoleToMSBuild="true"
+          IgnoreExitCode="true"
+          StandardOutputImportance="high"
+          StandardErrorImportance="high">
+      <Output TaskParameter="ConsoleOutput" PropertyName="_SignOutput" />
+      <Output TaskParameter="ExitCode" PropertyName="_SignExitCode" />
+    </Exec>
+
+    <Error Condition="'$(_SignExitCode)' != '0'"
+           Text="Signing failed with exit code $(_SignExitCode).%0A%0ATool output:%0A$(_SignOutput)%0A%0AAccount '$(ArtifactSigningAccount)', profile '$(ArtifactSigningProfile)', endpoint $(ArtifactSigningEndpoint)." />
+
+    <!-- Verify rather than trust the exit code: a present-but-untimestamped signature passes here and fails for users in 72 hours. -->
+    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildThisFileDirectory)..\verify-signature.ps1&quot; -Path &quot;$(_PublishedExe)&quot;"
+          StandardOutputImportance="high"
+          StandardErrorImportance="high" />
+  </Target>
+
+  <!--
+    Package versions are pinned to whatever Supremacy Launcher is on, deliberately. The two
+    apps share Theme/Palette.axaml and most of Theme/Controls.axaml verbatim, so a version
+    skew between them would show up as the two windows drifting apart visually.
+  -->
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="12.1.1" />
+    <PackageReference Include="Avalonia.Desktop" Version="12.1.1" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.1" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="12.1.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ChivRcon.Core\ChivRcon.Core.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,23 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v8.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v8.0": {
+      "ChivRcon.Core/1.0.0": {
+        "runtime": {
+          "ChivRcon.Core.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "ChivRcon.Core/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}

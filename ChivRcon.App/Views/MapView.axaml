@@ -1,0 +1,42 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:app="using:ChivRcon.App"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="700"
+             x:Class="ChivRcon.App.Views.MapView">
+
+    <Grid Margin="26,22,26,26" RowDefinitions="Auto,Auto,Auto,*">
+
+        <TextBlock Grid.Row="0" Classes="sectionTitle" Text="Map" />
+        <TextBlock Grid.Row="1" Classes="hint" Margin="0,4,0,14" TextWrapping="Wrap"
+                   Text="Where everyone is, polled from the server. There is no map data to scale against, so the view auto-fits to the players themselves — the scale shifts as they spread out or bunch up. Blue is Agatha, red is Mason, grey is dead." />
+
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="10" Margin="0,0,0,14">
+            <Button x:Name="RefreshBtn" Classes="ghost" Height="34" MinWidth="100"
+                    Content="Refresh" Click="Refresh_Click" />
+            <CheckBox x:Name="AutoBox" Classes="compact" Content="Auto" IsChecked="True"
+                      VerticalAlignment="Center" />
+            <TextBlock Classes="label" Text="every" VerticalAlignment="Center" />
+            <NumericUpDown x:Name="IntervalBox" Minimum="1" Maximum="30" Value="2"
+                           Increment="1" FormatString="0" Width="100" />
+            <TextBlock Classes="label" Text="s" VerticalAlignment="Center" />
+            <CheckBox x:Name="NamesBox" Classes="compact" Content="Names" IsChecked="True"
+                      VerticalAlignment="Center" Margin="10,0,0,0" />
+            <CheckBox x:Name="DeadBox" Classes="compact" Content="Dead" IsChecked="True"
+                      VerticalAlignment="Center" />
+            <CheckBox x:Name="LockBox" Classes="compact" Content="Lock scale" IsChecked="True"
+                      VerticalAlignment="Center"
+                      ToolTip.Tip="Fit to everywhere players have been on this map, not to where they are right now. Off means the view rescales every poll, which pins a lone player to the centre." />
+            <Button x:Name="RecentreBtn" Classes="ghost" Height="34" MinWidth="90"
+                    Content="Recentre" Click="Recentre_Click"
+                    ToolTip.Tip="Forget the learned map extent and start fitting again from the current positions." />
+            <TextBlock x:Name="StatusText" Classes="hint" VerticalAlignment="Center"
+                       Margin="10,0,0,0" Text="" />
+        </StackPanel>
+
+        <Border Grid.Row="3" Classes="card" Padding="1" ClipToBounds="True">
+            <app:MapCanvas x:Name="Canvas" />
+        </Border>
+    </Grid>
+</UserControl>
