@@ -1,4 +1,4 @@
-namespace ChivRcon.Core;
+﻿namespace ChivRcon.Core;
 
 /// <summary>
 /// Message type IDs from AOCRCon.uc (native protocol, 0-22) plus the
@@ -39,7 +39,7 @@ public enum RconMessageType : ushort
     ChangeGamePassword = 27,
     ConsoleCommand = 28,
 
-    // --- BangMod additions (require BangModRCon; see RCON_PROTOCOL.md) ---
+    // --- XangMod additions (require XangModRCon; see RCON_PROTOCOL.md) ---
     PlayerListRequest = 29,
     PlayerInfo = 30,
     PlayerListEnd = 31,
@@ -73,6 +73,9 @@ public enum RconMessageType : ushort
     PlayerPosEnd = 59,
     Teleport = 60,
     Slap = 61,
+    MuteListRequest = 62,
+    MuteInfo = 63,
+    MuteListEnd = 64,
 }
 
 /// <summary>Scope for the mutator-only ConsoleCommand message.</summary>

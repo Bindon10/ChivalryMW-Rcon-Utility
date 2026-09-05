@@ -194,7 +194,7 @@ client.Disconnect();
 listener.Stop();
 
 
-// The relay text-protocol tests were removed with RelayClient: BangModRCon serves
+// The relay text-protocol tests were removed with RelayClient: XangModRCon serves
 // console commands, mute and game speed natively over RCON (opcodes 28, 42, 46).
 
 Console.WriteLine(failures == 0 ? "\nALL TESTS PASSED" : $"\n{failures} FAILURES");

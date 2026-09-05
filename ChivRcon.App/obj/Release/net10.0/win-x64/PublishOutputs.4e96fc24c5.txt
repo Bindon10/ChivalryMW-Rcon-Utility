@@ -1,4 +1,0 @@
-C:\Projects\ChivRcon\ChivRcon.App\bin\Release\net10.0\win-x64\publish\libHarfBuzzSharp.pdb
-C:\Projects\ChivRcon\ChivRcon.App\bin\Release\net10.0\win-x64\publish\libSkiaSharp.pdb
-C:\Projects\ChivRcon\ChivRcon.App\bin\Release\net10.0\win-x64\publish\ChivRcon.Core.pdb
-C:\Projects\ChivRcon\ChivRcon.App\bin\Release\net10.0\win-x64\publish\ChivRconUtility.exe

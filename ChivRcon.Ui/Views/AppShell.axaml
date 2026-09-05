@@ -1,0 +1,66 @@
+<!--
+    The app body, shared by desktop and Android. The SplitView pane is inline and pinned on
+    wide screens (unchanged desktop look) and collapses behind a hamburger under NarrowWidth.
+-->
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:app="using:ChivRcon.App"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1050" d:DesignHeight="760"
+             x:Class="ChivRcon.App.Views.AppShell"
+             Background="{StaticResource BgWindow}">
+
+    <SplitView x:Name="Split"
+               DisplayMode="Inline"
+               IsPaneOpen="True"
+               OpenPaneLength="190"
+               CompactPaneLength="0"
+               PaneBackground="{StaticResource BgPanel}">
+
+        <SplitView.Pane>
+            <Border BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,1,0">
+                <Grid RowDefinitions="*,Auto" Margin="10,12">
+                    <ListBox Grid.Row="0" x:Name="Nav" Classes="nav"
+                             SelectionChanged="Nav_SelectionChanged">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="app:NavItem">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock Grid.Column="0" Text="{Binding Title}" />
+                                    <Ellipse Grid.Column="1" Width="6" Height="6"
+                                             VerticalAlignment="Center" Margin="6,0,0,0"
+                                             Fill="{StaticResource Accent}"
+                                             IsVisible="{Binding HasBadge}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+
+                    <StackPanel Grid.Row="1" Margin="12,10,0,0">
+                        <Border BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0"
+                                Margin="0,0,0,10" />
+                        <TextBlock x:Name="StatusLine" Classes="statusLine" Text="Disconnected" />
+                        <TextBlock x:Name="AddressLine" Classes="hint" Margin="0,3,0,0"
+                                   Text="no server set" />
+                        <TextBlock x:Name="MapLine" Classes="hint" Margin="0,2,0,0" Text="" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </SplitView.Pane>
+
+        <Grid RowDefinitions="Auto,*">
+            <Grid x:Name="MobileBar" Grid.Row="0" IsVisible="False"
+                  ColumnDefinitions="Auto,*" Background="{StaticResource BgPanel}">
+                <Button Grid.Column="0" x:Name="HamburgerBtn" Content="&#x2630;"
+                        FontSize="19" MinWidth="52" MinHeight="48"
+                        Background="Transparent" BorderThickness="0"
+                        Click="Hamburger_Click" />
+                <TextBlock Grid.Column="1" x:Name="PageTitle" VerticalAlignment="Center"
+                           FontSize="15" FontWeight="SemiBold"
+                           Foreground="{StaticResource TextPrimary}" />
+            </Grid>
+
+            <ContentControl Grid.Row="1" x:Name="PageHost" />
+        </Grid>
+    </SplitView>
+</UserControl>

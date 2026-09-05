@@ -1,4 +1,4 @@
-using System.Net.Sockets;
+﻿using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -130,7 +130,7 @@ public sealed class RconClient : IDisposable
 
     /// <summary>
     /// Drunk-camera + slurred audio on one player. ChivAdmin's version was one-way and
-    /// wore off on respawn; <see cref="SoberPlayerAsync"/> (BangMod opcode 48) undoes it.
+    /// wore off on respawn; <see cref="SoberPlayerAsync"/> (XangMod opcode 48) undoes it.
     /// </summary>
     public Task InebriateAsync(ulong steamId64) =>
         SendAsync(new PacketBuilder().AddUInt64(steamId64).Build(RconMessageType.Inebriate));
@@ -138,7 +138,7 @@ public sealed class RconClient : IDisposable
     public Task ChangeGamePasswordAsync(string newPassword) =>
         SendAsync(new PacketBuilder().AddString(newPassword).Build(RconMessageType.ChangeGamePassword));
 
-    // ------------- BangMod additions (require BangModRCon) -------------
+    // ------------- XangMod additions (require XangModRCon) -------------
 
     /// <summary>Request the scoreboard. Replies with PlayerInfoEvent per player, then PlayerListEndEvent.</summary>
     public Task RequestPlayerListAsync() =>
@@ -159,6 +159,13 @@ public sealed class RconClient : IDisposable
 
     public Task SetTeamScoreAsync(int teamId, int score) =>
         SendAsync(new PacketBuilder().AddInt32(teamId).AddInt32(score).Build(RconMessageType.SetTeamScore));
+
+    /// <summary>
+    /// Request the stored mute list. Replies with MuteInfoEvent per mute, then
+    /// MuteListEndEvent. Includes players who are currently offline.
+    /// </summary>
+    public Task RequestMuteListAsync() =>
+        SendAsync(new PacketBuilder().Build(RconMessageType.MuteListRequest));
 
     /// <summary>Admin text mute. Replaces the old relay AdminForceTextMute/Unmute.</summary>
     public Task MutePlayerAsync(ulong steamId64, bool mute) =>
@@ -256,7 +263,7 @@ public sealed class RconClient : IDisposable
         SendAsync(new PacketBuilder().AddUInt64(steamId64).AddInt32(power)
             .Build(RconMessageType.Slap));
 
-    /// <summary>Undo Inebriate. BangMod only -- ChivAdmin had no equivalent.</summary>
+    /// <summary>Undo Inebriate. XangMod only -- ChivAdmin had no equivalent.</summary>
     public Task SoberPlayerAsync(ulong steamId64) =>
         SendAsync(new PacketBuilder().AddUInt64(steamId64).Build(RconMessageType.SoberPlayer));
 
@@ -405,6 +412,13 @@ public sealed class RconClient : IDisposable
                 case RconMessageType.BanInfo:
                     evt = new BanInfoEvent(r.ReadUInt64(), r.ReadString(), r.ReadString(),
                         r.ReadInt32(), r.ReadString(), r.ReadString());
+                    break;
+                case RconMessageType.MuteInfo:
+                    evt = new MuteInfoEvent(r.ReadUInt64(), r.ReadString(), r.ReadInt32(),
+                        r.ReadInt32() != 0);
+                    break;
+                case RconMessageType.MuteListEnd:
+                    evt = new MuteListEndEvent(r.ReadInt32());
                     break;
                 case RconMessageType.BanListEnd:
                     evt = new BanListEndEvent(r.ReadInt32());

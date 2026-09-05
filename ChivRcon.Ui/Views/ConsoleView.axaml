@@ -1,0 +1,112 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:app="using:ChivRcon.App"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="700"
+             x:Class="ChivRcon.App.Views.ConsoleView">
+
+    <Grid Margin="26,22,26,26" RowDefinitions="Auto,Auto,*,Auto">
+
+        <TextBlock Grid.Row="0" Classes="sectionTitle" Text="Console" />
+        <TextBlock Grid.Row="1" Classes="hint" Margin="0,4,0,16"
+                   Text="Everything the server reports, and everything you send it. Commands and their results land in the same feed." />
+
+        <!-- ============ FEED ============ -->
+        <Border Grid.Row="2" Classes="card" Padding="0" ClipToBounds="True">
+            <Grid RowDefinitions="Auto,*,Auto">
+                <TextBlock Grid.Row="0" Classes="cardHeader" Text="LIVE EVENTS" Margin="16,14,16,10" />
+
+                <Border Grid.Row="1" Classes="feed" Margin="14,0,14,0">
+                    <ScrollViewer x:Name="FeedScroll" HorizontalScrollBarVisibility="Disabled">
+                        <ItemsControl x:Name="Feed">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="app:LogLine">
+                                    <TextBlock Classes="logLine"
+                                               Text="{Binding Text}"
+                                               Foreground="{Binding Brush}" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Border>
+
+                <WrapPanel ItemSpacing="14" LineSpacing="14" Grid.Row="2" Margin="16,10,16,12">
+                    <TextBlock Classes="label" Text="Show:" VerticalAlignment="Center" />
+                    <CheckBox x:Name="ShowKills" Classes="compact" Content="Kills" IsChecked="True" />
+                    <CheckBox x:Name="LogToFile" Classes="compact" Content="Log to file" IsChecked="True" />
+                    <TextBlock Classes="hint" VerticalAlignment="Center"
+                               Text="&#x2192; %AppData%\ChivRconUtility\logs" />
+                    <Button Classes="mini" Content="Clear" Click="Clear_Click" />
+                </WrapPanel>
+            </Grid>
+        </Border>
+
+        <!-- ============ SEND ============ -->
+        <Border Grid.Row="3" Classes="card" Padding="0" Margin="0,14,0,0">
+            <StackPanel>
+                <TextBlock Classes="cardHeader" Text="SEND" Margin="16,14,16,0" />
+                <Border BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0" Margin="0,12,0,0" />
+
+                <!--
+                    Three columns, one logical row each. Under NarrowWidth the code-behind
+                    re-flows every child onto its own row: at phone width the star column
+                    collapsed below the TextBox's own minimum and the box bled underneath
+                    the buttons.
+                -->
+                <Grid x:Name="SendGrid" Margin="16,14" RowDefinitions="Auto,Auto,Auto"
+                      ColumnDefinitions="86,*,Auto">
+
+                    <TextBlock x:Name="BroadcastLabel" Grid.Row="0" Grid.Column="0" Classes="label"
+                               Text="Broadcast" VerticalAlignment="Center" />
+                    <TextBox   Grid.Row="0" Grid.Column="1" x:Name="Message" Margin="0,0,8,0"
+                               PlaceholderText="Message to everyone on the server" KeyDown="Message_KeyDown" />
+                    <!--
+                        Vanilla routes SAY_ALL_BIG to the same handler as SAY_ALL, so this used
+                        to be a duplicate of Say. XangMod now intercepts opcode 7 and puts the
+                        text through the objective header banner as well; it needs a server
+                        running that build.
+                    -->
+                    <WrapPanel x:Name="SayButtons" Grid.Row="0" Grid.Column="2"
+                               ItemSpacing="8" LineSpacing="8">
+                        <Button x:Name="SayBtn" Classes="primary"
+                                Height="32" MinWidth="86" Content="Say" Click="Say_Click" />
+                        <Button x:Name="SayBigBtn" Classes="ghost"
+                                Height="32" MinWidth="96" Content="Say (big)" Click="SayBig_Click" />
+                    </WrapPanel>
+
+                    <TextBlock x:Name="CommandLabel" Grid.Row="1" Grid.Column="0" Classes="label"
+                               Text="Command" VerticalAlignment="Center" Margin="0,10,0,0" />
+                    <!--
+                        AutoCompleteBox, not ComboBox: Avalonia's ComboBox cannot be typed
+                        into, and the WinForms version allowed an arbitrary command. This
+                        keeps the suggestion list while still accepting anything.
+                    -->
+                    <AutoCompleteBox Grid.Row="1" Grid.Column="1" x:Name="Command" Margin="0,10,8,0"
+                                     HorizontalAlignment="Stretch" FilterMode="Contains"
+                                     MinimumPrefixLength="0"
+                                     PlaceholderText="Console command to run on the server" />
+                    <WrapPanel x:Name="RunButtons" Grid.Row="1" Grid.Column="2"
+                               ItemSpacing="8" LineSpacing="8" Margin="0,10,0,0">
+                        <Button x:Name="RunBtn" Classes="primary" Height="32" MinWidth="150"
+                                Content="Run on server" Click="Run_Click" />
+                    </WrapPanel>
+
+                    <TextBlock x:Name="MapLabel" Grid.Row="2" Grid.Column="0" Classes="label"
+                               Text="Map" VerticalAlignment="Center" Margin="0,10,0,0" />
+                    <AutoCompleteBox Grid.Row="2" Grid.Column="1" x:Name="Maps" Margin="0,10,8,0"
+                                     HorizontalAlignment="Stretch" FilterMode="Contains"
+                                     MinimumPrefixLength="0"
+                                     PlaceholderText="Map name (the rotation populates on connect)" />
+                    <WrapPanel x:Name="MapButtons" Grid.Row="2" Grid.Column="2"
+                               ItemSpacing="8" LineSpacing="8" Margin="0,10,0,0">
+                        <Button x:Name="ChangeMapBtn" Classes="primary" Height="32" MinWidth="86"
+                                Content="Change" Click="ChangeMap_Click" />
+                        <Button x:Name="NextMapBtn" Classes="ghost" Height="32" MinWidth="96"
+                                Content="Next map" Click="NextMap_Click" />
+                    </WrapPanel>
+                </Grid>
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

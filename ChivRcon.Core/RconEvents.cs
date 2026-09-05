@@ -1,4 +1,4 @@
-namespace ChivRcon.Core;
+﻿namespace ChivRcon.Core;
 
 /// <summary>Base type for all events pushed by the server.</summary>
 public abstract record RconEvent
@@ -25,7 +25,7 @@ public sealed record PingExtendedEvent(
     ulong SteamId64, int Ping, int Score, int IdleTime,
     int Kills, int TeamDamageDealt, int Rank) : RconEvent;
 
-// ---- BangMod additions (require BangModRCon) ----
+// ---- XangMod additions (require XangModRCon) ----
 
 /// <summary>One row of the player list. Kills come from AOCPRI.NumKills.</summary>
 public sealed record PlayerInfoEvent(
@@ -39,7 +39,7 @@ public sealed record ServerInfoEvent(
     string MapName, int NumPlayers, int MaxPlayers,
     bool MatchBegun, int NumSpectators) : RconEvent;
 
-/// <summary>Output of a ConsoleCommand. Vanilla discarded this; BangModRCon returns it.</summary>
+/// <summary>Output of a ConsoleCommand. Vanilla discarded this; XangModRCon returns it.</summary>
 public sealed record ConsoleResultEvent(string Command, string Result) : RconEvent;
 
 public sealed record BanInfoEvent(
@@ -47,6 +47,17 @@ public sealed record BanInfoEvent(
     int DurationSeconds, string NetIdString, string IpPolicy) : RconEvent;
 
 public sealed record BanListEndEvent(int Count) : RconEvent;
+
+/// <summary>
+/// One stored text mute. The server keeps these in its ini like bans, so a mute survives
+/// the player reconnecting and the server restarting. <paramref name="Online"/> is false
+/// for someone currently disconnected, in which case <paramref name="Name"/> is whatever
+/// they were called when muted and <paramref name="TeamId"/> is -1.
+/// </summary>
+public sealed record MuteInfoEvent(
+    ulong SteamId64, string Name, int TeamId, bool Online) : RconEvent;
+
+public sealed record MuteListEndEvent(int Count) : RconEvent;
 
 /// <summary>One weapon a player's current class may take, by slot and index.</summary>
 public sealed record LoadoutOptionEvent(

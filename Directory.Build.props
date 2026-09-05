@@ -1,0 +1,23 @@
+<Project>
+
+  <!--
+    Assembly identity, set once so it cannot drift between projects. Also an antivirus
+    reputation factor: a binary with a blank version resource scores worse than one with a
+    real publisher and product name.
+  -->
+  <PropertyGroup>
+    <Company>Bindon's Information Technology Support</Company>
+    <Product>Chivalry RCON Utility</Product>
+    <Authors>Bindon</Authors>
+    <Copyright>Copyright © Bindon</Copyright>
+
+    <!-- release.cmd reads this line. Bump it before every release. -->
+    <VersionPrefix>1.2.5</VersionPrefix>
+    <AssemblyVersion>$(VersionPrefix).0</AssemblyVersion>
+    <FileVersion>$(VersionPrefix).0</FileVersion>
+
+    <!-- Reproducible output lets AV vendors whitelist a build rather than a hash. -->
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+
+</Project>

@@ -127,6 +127,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ChivRcon.Core\ChivRcon.Core.csproj" />
+    <ProjectReference Include="..\ChivRcon.Ui\ChivRcon.Ui.csproj" />
   </ItemGroup>
 
 </Project>

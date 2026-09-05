@@ -1,0 +1,60 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:views="using:ChivRcon.App.Views"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="700"
+             x:Class="ChivRcon.App.Views.MutesView">
+
+    <Grid Margin="26,22,26,26" RowDefinitions="Auto,Auto,*,Auto">
+
+        <TextBlock Grid.Row="0" Classes="sectionTitle" Text="Mutes" />
+        <TextBlock Grid.Row="1" Classes="hint" Margin="0,4,0,16"
+                   Text="Stored text mutes, offline players included. Mutes persist in the server's ini like bans, so they survive a reconnect and a restart. Vanilla RCON cannot send this list, so the page stays empty without BangMod / XangMod / AdminMod." />
+
+        <Border Grid.Row="2" Classes="card" Padding="0" ClipToBounds="True">
+            <!-- Same scroll-as-one treatment as the ban list; these columns will not fit a phone. -->
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                <Grid MinWidth="700" RowDefinitions="Auto,Auto,*">
+                    <TextBlock Grid.Row="0" x:Name="MutesHeader" Classes="cardHeader"
+                               Text="STORED MUTES" Margin="16,14,16,12" />
+
+                    <!-- Column widths repeated in the item template below. Change both together. -->
+                    <Border Grid.Row="1" Classes="headerStrip">
+                        <Grid ColumnDefinitions="240,160,150,110,*">
+                            <TextBlock Grid.Column="0" Classes="colHeader" Text="Name" />
+                            <TextBlock Grid.Column="1" Classes="colHeader" Text="SteamID64" />
+                            <TextBlock Grid.Column="2" Classes="colHeader" Text="Steam3" />
+                            <TextBlock Grid.Column="3" Classes="colHeader" Text="Status" />
+                            <TextBlock Grid.Column="4" Classes="colHeader" Text="Team" />
+                        </Grid>
+                    </Border>
+
+                    <ListBox Grid.Row="2" x:Name="Mutes" Classes="rows" Margin="0,4,0,6"
+                             SelectionMode="Multiple">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="views:MuteRow">
+                                <Grid ColumnDefinitions="240,160,150,110,*">
+                                    <TextBlock Grid.Column="0" Classes="cell" Text="{Binding Name}" />
+                                    <TextBlock Grid.Column="1" Classes="cellDim" Text="{Binding SteamId64}" />
+                                    <TextBlock Grid.Column="2" Classes="cellDim" Text="{Binding Steam3}" />
+                                    <TextBlock Grid.Column="3" Classes="cell" Text="{Binding Status}" />
+                                    <TextBlock Grid.Column="4" Classes="cellDim" Text="{Binding Team}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Grid>
+            </ScrollViewer>
+        </Border>
+
+        <WrapPanel ItemSpacing="8" LineSpacing="8" Grid.Row="3" Margin="0,14,0,0">
+            <Button x:Name="RefreshBtn" Classes="ghost" Height="34" MinWidth="100"
+                    Content="Refresh" Click="Refresh_Click" />
+            <Button x:Name="UnmuteBtn" Classes="primary" Height="34" MinWidth="150"
+                    Content="Unmute selected" Click="Unmute_Click" />
+            <TextBlock x:Name="StatusText" Classes="hint" VerticalAlignment="Center"
+                       Margin="8,0,0,0" Text="" />
+        </WrapPanel>
+    </Grid>
+</UserControl>

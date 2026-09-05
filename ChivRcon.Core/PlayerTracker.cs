@@ -46,7 +46,7 @@ public sealed class Player : INotifyPropertyChanged
     public string ClassName { get => _className; set => Set(ref _className, value); }
     public bool IsSpectator { get => _isSpectator; set => Set(ref _isSpectator, value); }
 
-    /// <summary>Bots get a synthetic id from BangModRCon.EnsureUniqueId; real SteamID64s
+    /// <summary>Bots get a synthetic id from XangModRCon.EnsureUniqueId; real SteamID64s
     /// never have a zero high half.</summary>
     public bool IsBot => (SteamId64 >> 32) == 0 && SteamId64 != 0;
 

@@ -1,0 +1,117 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="700"
+             x:Class="ChivRcon.App.Views.LoadoutView">
+
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="26,22,26,26">
+
+            <TextBlock Classes="sectionTitle" Text="Loadout" />
+            <TextBlock Classes="hint" Margin="0,4,0,16" TextWrapping="Wrap"
+                       Text="Force a player's class, weapons, or hold them still. Pick a target below; opening this page from the Dashboard preselects whoever was highlighted there." />
+
+            <!-- ============ TARGET ============ -->
+            <Border Classes="card" Padding="0" Margin="0,0,0,16">
+                <StackPanel>
+                    <TextBlock Classes="cardHeader" Text="TARGET" Margin="16,14,16,0" />
+                    <Border BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0"
+                            Margin="0,12,0,0" />
+                    <WrapPanel ItemSpacing="10" LineSpacing="10" Margin="16,14,16,14">
+                        <ComboBox x:Name="TargetBox" MinWidth="180" MaxWidth="280" Height="34"
+                                  PlaceholderText="Select a player…"
+                                  SelectionChanged="Target_SelectionChanged" />
+                        <TextBlock x:Name="TargetText" Classes="value" VerticalAlignment="Center"
+                                   Text="No player selected" />
+                        <Button x:Name="ReloadBtn" Classes="mini" MinWidth="120"
+                                Content="Reload options" Click="Reload_Click" />
+                    </WrapPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- ============ CLASS ============ -->
+            <Border Classes="card" Padding="0" Margin="0,0,0,16">
+                <StackPanel>
+                    <TextBlock Classes="cardHeader" Text="CLASS" Margin="16,14,16,0" />
+                    <Border BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0"
+                            Margin="0,12,0,0" />
+
+                    <WrapPanel ItemSpacing="8" LineSpacing="8" Margin="16,14,16,0">
+                        <Button x:Name="ArcherBtn" Classes="ghost" Height="34" MinWidth="110"
+                                Content="Archer" Click="Class_Click" Tag="0" />
+                        <Button x:Name="MaaBtn" Classes="ghost" Height="34" MinWidth="110"
+                                Content="Man-at-Arms" Click="Class_Click" Tag="1" />
+                        <Button x:Name="VanguardBtn" Classes="ghost" Height="34" MinWidth="110"
+                                Content="Vanguard" Click="Class_Click" Tag="2" />
+                        <Button x:Name="KnightBtn" Classes="ghost" Height="34" MinWidth="110"
+                                Content="Knight" Click="Class_Click" Tag="3" />
+                        <CheckBox x:Name="ImmediateBox" Classes="compact" Content="Apply now"
+                                  VerticalAlignment="Center" Margin="10,0,0,0" />
+                    </WrapPanel>
+
+                    <TextBlock Classes="hint" Margin="16,10,16,14" TextWrapping="Wrap"
+                               Text="Stays on their current team. Without &quot;Apply now&quot; the change lands on their next spawn, which is vanilla behaviour; with it, the pawn is killed so it takes effect immediately." />
+                </StackPanel>
+            </Border>
+
+            <!-- ============ WEAPONS ============ -->
+            <Border Classes="card" Padding="0" Margin="0,0,0,16">
+                <StackPanel>
+                    <TextBlock Classes="cardHeader" Text="WEAPONS" Margin="16,14,16,0" />
+                    <Border BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0"
+                            Margin="0,12,0,0" />
+
+                    <Grid Margin="16,14,16,0" ColumnDefinitions="90,*" RowDefinitions="Auto,Auto,Auto">
+                        <TextBlock Grid.Row="0" Grid.Column="0" Classes="label" Text="Primary"
+                                   VerticalAlignment="Center" />
+                        <ComboBox Grid.Row="0" Grid.Column="1" x:Name="PrimaryBox"
+                                  HorizontalAlignment="Stretch" />
+
+                        <TextBlock Grid.Row="1" Grid.Column="0" Classes="label" Text="Secondary"
+                                   VerticalAlignment="Center" Margin="0,8,0,0" />
+                        <ComboBox Grid.Row="1" Grid.Column="1" x:Name="SecondaryBox"
+                                  HorizontalAlignment="Stretch" Margin="0,8,0,0" />
+
+                        <TextBlock Grid.Row="2" Grid.Column="0" Classes="label" Text="Tertiary"
+                                   VerticalAlignment="Center" Margin="0,8,0,0" />
+                        <ComboBox Grid.Row="2" Grid.Column="1" x:Name="TertiaryBox"
+                                  HorizontalAlignment="Stretch" Margin="0,8,0,0" />
+                    </Grid>
+
+                    <WrapPanel ItemSpacing="10" LineSpacing="10" Margin="16,14,16,0">
+                        <Button x:Name="ApplyLoadoutBtn" Classes="primary" Height="34" MinWidth="150"
+                                Content="Apply loadout" Click="ApplyLoadout_Click" />
+                        <TextBlock x:Name="LoadoutStatus" Classes="hint" VerticalAlignment="Center"
+                                   Text="" />
+                    </WrapPanel>
+
+                    <TextBlock Classes="hint" Margin="16,10,16,14" TextWrapping="Wrap"
+                               Text="The list comes from the class the player is on right now, so change class first if you want its weapons. Applies on their next spawn, and their own class menu will not show it until it refreshes." />
+                </StackPanel>
+            </Border>
+
+            <!-- ============ FREEZE ============ -->
+            <Border Classes="card" Padding="0">
+                <StackPanel>
+                    <TextBlock Classes="cardHeader" Text="FREEZE" Margin="16,14,16,0" />
+                    <Border BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0"
+                            Margin="0,12,0,0" />
+
+                    <WrapPanel ItemSpacing="10" LineSpacing="10" Margin="16,14,16,0">
+                        <Button x:Name="FreezeBtn" Classes="primary" Height="34" MinWidth="130"
+                                Content="Freeze" Click="Freeze_Click" />
+                        <Button x:Name="UnfreezeBtn" Classes="ghost" Height="34" MinWidth="130"
+                                Content="Release" Click="Unfreeze_Click" />
+                    </WrapPanel>
+
+                    <TextBlock Classes="hint" Margin="16,10,16,4" TextWrapping="Wrap"
+                               Text="Blocks movement, attacks, block, feint, sprint, dodge, jump and crouch. Talk is left alone on purpose, so they can still answer you." />
+                    <TextBlock Classes="hint" Margin="16,0,16,14" TextWrapping="Wrap"
+                               Foreground="{StaticResource Warning}"
+                               Text="Enforced on the player's own client — this is Torn Banner's tutorial input system, and their own comment beside it says it is not a safe way to stop someone acting. Fine for holding an ordinary player still; useless against a modified client. Kick or ban for that." />
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

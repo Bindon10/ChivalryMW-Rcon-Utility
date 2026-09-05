@@ -1,0 +1,62 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:views="using:ChivRcon.App.Views"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1000" d:DesignHeight="700"
+             x:Class="ChivRcon.App.Views.BansView">
+
+    <Grid Margin="26,22,26,26" RowDefinitions="Auto,Auto,*,Auto">
+
+        <TextBlock Grid.Row="0" Classes="sectionTitle" Text="Bans" />
+        <TextBlock Grid.Row="1" Classes="hint" Margin="0,4,0,16"
+                   Text="Live from the server's own ban list. Vanilla RCON has no way to send this, so the page stays empty without XangMod." />
+
+        <Border Grid.Row="2" Classes="card" Padding="0" ClipToBounds="True">
+            <!-- 790px of columns will not fit a phone; header and rows scroll as one. -->
+            <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                <Grid MinWidth="790" RowDefinitions="Auto,Auto,*">
+                    <TextBlock Grid.Row="0" x:Name="BansHeader" Classes="cardHeader"
+                               Text="SERVER BAN LIST" Margin="16,14,16,12" />
+
+                    <!-- Column widths repeated in the item template below. Change both together. -->
+                    <Border Grid.Row="1" Classes="headerStrip">
+                        <Grid ColumnDefinitions="200,150,140,100,160,*">
+                            <TextBlock Grid.Column="0" Classes="colHeader" Text="Name" />
+                            <TextBlock Grid.Column="1" Classes="colHeader" Text="SteamID64" />
+                            <TextBlock Grid.Column="2" Classes="colHeader" Text="Steam3" />
+                            <TextBlock Grid.Column="3" Classes="colHeader" Text="Duration" />
+                            <TextBlock Grid.Column="4" Classes="colHeader" Text="IP policy" />
+                            <TextBlock Grid.Column="5" Classes="colHeader" Text="Reason" />
+                        </Grid>
+                    </Border>
+
+                    <ListBox Grid.Row="2" x:Name="Bans" Classes="rows" Margin="0,4,0,6"
+                             SelectionMode="Multiple">
+                        <ListBox.ItemTemplate>
+                            <DataTemplate x:DataType="views:BanRow">
+                                <Grid ColumnDefinitions="200,150,140,100,160,*">
+                                    <TextBlock Grid.Column="0" Classes="cell" Text="{Binding Name}" />
+                                    <TextBlock Grid.Column="1" Classes="cellDim" Text="{Binding SteamId64}" />
+                                    <TextBlock Grid.Column="2" Classes="cellDim" Text="{Binding Steam3}" />
+                                    <TextBlock Grid.Column="3" Classes="cell" Text="{Binding Duration}" />
+                                    <TextBlock Grid.Column="4" Classes="cellDim" Text="{Binding IpPolicy}" />
+                                    <TextBlock Grid.Column="5" Classes="cellDim" Text="{Binding Reason}" />
+                                </Grid>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </Grid>
+            </ScrollViewer>
+        </Border>
+
+        <WrapPanel ItemSpacing="8" LineSpacing="8" Grid.Row="3" Margin="0,14,0,0">
+            <Button x:Name="RefreshBtn" Classes="ghost" Height="34" MinWidth="100"
+                    Content="Refresh" Click="Refresh_Click" />
+            <Button x:Name="UnbanBtn" Classes="primary" Height="34" MinWidth="150"
+                    Content="Unban selected" Click="Unban_Click" />
+            <TextBlock x:Name="StatusText" Classes="hint" VerticalAlignment="Center"
+                       Margin="8,0,0,0" Text="" />
+        </WrapPanel>
+    </Grid>
+</UserControl>
