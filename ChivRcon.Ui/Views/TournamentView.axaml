@@ -81,12 +81,14 @@
                             Margin="0,12,0,0" />
 
                     <WrapPanel ItemSpacing="10" LineSpacing="10" Margin="16,14,16,14">
-                        <TextBlock Classes="label" Text="Agatha" VerticalAlignment="Center" />
-                        <NumericUpDown x:Name="AgathaScore" Minimum="0" Maximum="9999" Value="0"
+                        <!-- Labels are set from GameProfile: team 0 and team 1 are Agatha and
+                             Mason in Medieval Warfare, Blue and Red in Deadliest Warrior. -->
+                        <TextBlock x:Name="Team0Label" Classes="label" Text="Agatha" VerticalAlignment="Center" />
+                        <NumericUpDown x:Name="Team0Score" Minimum="0" Maximum="9999" Value="0"
                                        Increment="1" FormatString="0" Width="110" />
-                        <TextBlock Classes="label" Text="Mason" VerticalAlignment="Center"
+                        <TextBlock x:Name="Team1Label" Classes="label" Text="Mason" VerticalAlignment="Center"
                                    Margin="10,0,0,0" />
-                        <NumericUpDown x:Name="MasonScore" Minimum="0" Maximum="9999" Value="0"
+                        <NumericUpDown x:Name="Team1Score" Minimum="0" Maximum="9999" Value="0"
                                        Increment="1" FormatString="0" Width="110" />
                         <Button x:Name="ApplyScoreBtn" Classes="primary" Height="34" MinWidth="130"
                                 Margin="10,0,0,0" Content="Apply scores" Click="ApplyScore_Click" />

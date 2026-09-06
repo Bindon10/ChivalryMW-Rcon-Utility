@@ -38,14 +38,22 @@
                             Margin="0,12,0,0" />
 
                     <WrapPanel ItemSpacing="8" LineSpacing="8" Margin="16,14,16,0">
-                        <Button x:Name="ArcherBtn" Classes="ghost" Height="34" MinWidth="110"
+                        <!-- Labels and visibility come from GameProfile at runtime: the index
+                             on the wire is the same, but index 2 is Vanguard in Medieval
+                             Warfare and Viking in Deadliest Warrior, which has six classes
+                             rather than four. -->
+                        <Button x:Name="Class0Btn" Classes="ghost" Height="34" MinWidth="110"
                                 Content="Archer" Click="Class_Click" Tag="0" />
-                        <Button x:Name="MaaBtn" Classes="ghost" Height="34" MinWidth="110"
+                        <Button x:Name="Class1Btn" Classes="ghost" Height="34" MinWidth="110"
                                 Content="Man-at-Arms" Click="Class_Click" Tag="1" />
-                        <Button x:Name="VanguardBtn" Classes="ghost" Height="34" MinWidth="110"
+                        <Button x:Name="Class2Btn" Classes="ghost" Height="34" MinWidth="110"
                                 Content="Vanguard" Click="Class_Click" Tag="2" />
-                        <Button x:Name="KnightBtn" Classes="ghost" Height="34" MinWidth="110"
+                        <Button x:Name="Class3Btn" Classes="ghost" Height="34" MinWidth="110"
                                 Content="Knight" Click="Class_Click" Tag="3" />
+                        <Button x:Name="Class4Btn" Classes="ghost" Height="34" MinWidth="110"
+                                Content="Ninja" Click="Class_Click" Tag="4" IsVisible="False" />
+                        <Button x:Name="Class5Btn" Classes="ghost" Height="34" MinWidth="110"
+                                Content="Pirate" Click="Class_Click" Tag="5" IsVisible="False" />
                         <CheckBox x:Name="ImmediateBox" Classes="compact" Content="Apply now"
                                   VerticalAlignment="Center" Margin="10,0,0,0" />
                     </WrapPanel>

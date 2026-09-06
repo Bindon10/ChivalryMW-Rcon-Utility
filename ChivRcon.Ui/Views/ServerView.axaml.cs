@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.Threading;
 using ChivRcon.Core;
 
 namespace ChivRcon.App.Views;
@@ -13,14 +14,36 @@ public partial class ServerView : UserControl
         public override string ToString() => Label;
     }
 
+    /// <summary>Combo entry for the game picker.</summary>
+    private sealed record GameEntry(string Label, GameFlavor Flavor)
+    {
+        public override string ToString() => Label;
+    }
+
+    private static readonly GameEntry[] Games =
+    {
+        new("Medieval Warfare", GameFlavor.Chivalry),
+        new("Deadliest Warrior", GameFlavor.DeadliestWarrior),
+    };
+
     private readonly ObservableCollection<BookmarkEntry> _bookmarks = new();
     private Session _session = null!;
     private IShell _shell = null!;
+
+    /// <summary>Set while we are writing GameBox ourselves, so the handler does not answer back.</summary>
+    private bool _settingGameBox;
 
     public ServerView()
     {
         InitializeComponent();
         Bookmarks.ItemsSource = _bookmarks;
+        GameBox.ItemsSource = Games;
+        GameBox.SelectedIndex = 0;
+
+        // Auto-detection can correct the choice mid-session, once a player on the server has
+        // picked a class and PLAYER_INFO carries a family name. Follow it, so the picker
+        // never disagrees with the labels the rest of the app is drawing.
+        GameProfile.Changed += OnGameProfileChanged;
 
         // Wired here rather than in XAML so ReloadBookmarks can detach it while it rebuilds
         // the list. The previous version used a _loadingBookmark bool for that, which only
@@ -36,6 +59,7 @@ public partial class ServerView : UserControl
     public int Port => (int)(PortBox.Value ?? 27960);
     public string Password => PasswordBox.Text ?? "";
     public bool AutoReconnect => AutoReconnectBox.IsChecked == true;
+    public GameFlavor Game => (GameBox.SelectedItem as GameEntry)?.Flavor ?? GameFlavor.Chivalry;
 
     public void Bind(Session session, IShell shell)
     {
@@ -55,6 +79,7 @@ public partial class ServerView : UserControl
         SavePassword.IsChecked = s.SavePassword;
         if (s.SavePassword) PasswordBox.Text = s.Password;
         AutoReconnectBox.IsChecked = s.AutoReconnect;
+        SetGameBox(GameFlavors.Parse(s.Game));
         _session.ShowKills = s.ShowKills;
         _session.LogToFile = s.LogToFile;
         ReloadBookmarks(s.LastBookmark);
@@ -71,6 +96,7 @@ public partial class ServerView : UserControl
         s.LogToFile = _session.LogToFile;
         s.ShowKills = _session.ShowKills;
         s.AutoReconnect = AutoReconnect;
+        s.Game = GameFlavors.Store(Game);
         s.LastBookmark = SelectedBookmark?.Name ?? "";
         _session.SaveSettings();
     }
@@ -91,9 +117,48 @@ public partial class ServerView : UserControl
         _session.AddressText = Host.Length == 0 ? "no server set" : $"{Host}:{Port}";
     }
 
+    /// <summary>
+    /// The picker only names things -- it changes nothing that goes on the wire. The two
+    /// games share one protocol; what differs is that team 1 is Mason in Medieval Warfare and
+    /// Red in Deadliest Warrior, and class index 2 is Vanguard in one and Viking in the other.
+    /// </summary>
+    private void Game_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (_settingGameBox) return;
+        GameProfile.Current = Game;
+    }
+
+    private void SetGameBox(GameFlavor flavor)
+    {
+        _settingGameBox = true;
+        try
+        {
+            GameBox.SelectedItem = Games.First(g => g.Flavor == flavor);
+            GameProfile.Current = flavor;
+        }
+        finally { _settingGameBox = false; }
+    }
+
+    private void OnGameProfileChanged()
+    {
+        if (!Dispatcher.UIThread.CheckAccess())
+        {
+            Dispatcher.UIThread.Post(OnGameProfileChanged);
+            return;
+        }
+
+        if (Game == GameProfile.Current) return;
+        SetGameBox(GameProfile.Current);
+    }
+
     private async void Connect_Click(object? sender, RoutedEventArgs e)
     {
         PersistSettings();
+
+        // The bookmark's answer is the starting point; the server can still correct it.
+        GameProfile.ResetDetection();
+        GameProfile.Current = Game;
+
         ConnectBtn.IsEnabled = false;
         try { await _shell.ToggleConnectAsync(Host, Port, Password); }
         finally { ConnectBtn.IsEnabled = true; }
@@ -165,6 +230,7 @@ public partial class ServerView : UserControl
         PortBox.Value = Math.Clamp(b.Port, 1, 65535);
         SavePassword.IsChecked = b.SavePassword;
         PasswordBox.Text = b.SavePassword ? b.Password : "";
+        SetGameBox(GameFlavors.Parse(b.Game));
 
         SetBookmarkNote($"Loaded \"{b.Name}\" — {b.Host}:{b.Port}");
         UpdateConnectionUi();
@@ -193,6 +259,7 @@ public partial class ServerView : UserControl
         bm.Port = Port;
         bm.SavePassword = SavePassword.IsChecked == true;
         bm.Password = bm.SavePassword ? Password : "";
+        bm.Game = GameFlavors.Store(Game);
         if (existing is null) _session.Settings.Bookmarks.Add(bm);
 
         _session.Settings.LastBookmark = name;

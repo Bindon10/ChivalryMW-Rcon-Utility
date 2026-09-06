@@ -36,6 +36,15 @@ public partial class LoadoutView : UserControl
     // Suppresses the SelectionChanged raised while repopulating.
     private bool _syncingTargets;
 
+    /// <summary>Class buttons in wire order -- the array index IS the value opcode 52 takes.</summary>
+    private Button[] _classButtons = null!;
+
+    /// <summary>
+    /// False until Bind() has run. Views are constructed well before they are bound, and
+    /// anything reachable from a static event has to survive that window -- see Bind().
+    /// </summary>
+    private bool _bound;
+
     public LoadoutView()
     {
         InitializeComponent();
@@ -43,13 +52,64 @@ public partial class LoadoutView : UserControl
         SecondaryBox.ItemsSource = _secondary;
         TertiaryBox.ItemsSource = _tertiary;
         TargetBox.ItemsSource = _targets;
+
+        _classButtons = new[] { Class0Btn, Class1Btn, Class2Btn, Class3Btn, Class4Btn, Class5Btn };
+
+        // Labels only -- this touches nothing that Bind() supplies. The GameProfile.Changed
+        // subscription deliberately waits until Bind(); see there.
+        ApplyGameLabels();
+    }
+
+    /// <summary>
+    /// Name the class buttons for the game we are actually talking to, and hide the ones it
+    /// does not have.
+    ///
+    /// This is the one place where getting the game wrong is not cosmetic. Opcode 52 carries
+    /// a bare index, so a button labelled "Archer" sending 0 to a Deadliest Warrior server
+    /// makes that player a Samurai -- the right index, the wrong promise. Medieval Warfare
+    /// has four selectable classes and Deadliest Warrior six, so Ninja and Pirate simply do
+    /// not exist on the other side.
+    /// </summary>
+    private void ApplyGameLabels()
+    {
+        var names = GameProfile.ClassNames();
+
+        for (int i = 0; i < _classButtons.Length; i++)
+        {
+            bool exists = i < names.Count;
+            _classButtons[i].IsVisible = exists;
+            if (exists) _classButtons[i].Content = names[i];
+        }
+    }
+
+    private void OnGameProfileChanged()
+    {
+        if (!Dispatcher.UIThread.CheckAccess())
+        {
+            Dispatcher.UIThread.Post(OnGameProfileChanged);
+            return;
+        }
+
+        ApplyGameLabels();
+        UpdateAvailability();
     }
 
     public void Bind(Session session, IShell shell)
     {
         _session = session;
         _shell = shell;
+        _bound = true;
         _session.Client.EventReceived += OnEvent;
+
+        // Subscribed HERE, not in the constructor. GameProfile.Changed is a static event and
+        // the pages are constructed before any of them is bound, so a handler wired in the
+        // constructor can fire against a half-built view: ServerView.Bind sets the flavour
+        // from the bookmark, which raised Changed, which reached UpdateAvailability() while
+        // _session was still null. Every other view already subscribed in Bind; this one was
+        // the outlier because the constructor is where _classButtons is built.
+        GameProfile.Changed += OnGameProfileChanged;
+
+        ApplyGameLabels();
         UpdateAvailability();
     }
 
@@ -110,12 +170,14 @@ public partial class LoadoutView : UserControl
 
     public void UpdateAvailability()
     {
+        // Public and reachable from several paths, so it stays correct before Bind() rather
+        // than relying on call order.
+        if (!_bound) return;
+
         bool ready = _session.Client.State == RconState.Connected && _target is not null;
-        foreach (var b in new[]
-                 {
-                     ArcherBtn, MaaBtn, VanguardBtn, KnightBtn,
-                     ApplyLoadoutBtn, FreezeBtn, UnfreezeBtn, ReloadBtn,
-                 })
+        foreach (var b in _classButtons)
+            b.IsEnabled = ready;
+        foreach (var b in new[] { ApplyLoadoutBtn, FreezeBtn, UnfreezeBtn, ReloadBtn })
             b.IsEnabled = ready;
     }
 

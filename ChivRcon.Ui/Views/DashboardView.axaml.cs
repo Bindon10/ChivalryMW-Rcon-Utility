@@ -4,6 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Input.Platform;   // IClipboard.SetTextAsync is an extension method here
 using Avalonia.Interactivity;
+using Avalonia.Threading;
 using Avalonia.VisualTree;
 using ChivRcon.Core;
 
@@ -14,6 +15,25 @@ public partial class DashboardView : UserControl
     private readonly ObservableCollection<Player> _rows = new();
     private Session _session = null!;
     private IShell _shell = null!;
+
+    /// <summary>
+    /// "Move to &lt;team&gt;" rows. Six, because Deadliest Warrior runs anywhere from one to six
+    /// teams (FFA and Duel force 1, the tutorial 6, everything else defaults to 2 and takes
+    /// ?NumTeams= clamped 2-6). Created once and shown/hidden per server rather than rebuilt:
+    /// rebuilding the menu while it is open is what used to close it.
+    /// </summary>
+    private const int MaxTeams = 6;
+    private readonly MenuItem?[] _moveToTeam = new MenuItem?[MaxTeams];
+
+    /// <summary>Team index each row currently targets. -1 = row is hidden.</summary>
+    private readonly int[] _moveToTeamIndex = Enumerable.Repeat(-1, MaxTeams).ToArray();
+
+    /// <summary>
+    /// The Deadliest Warrior alternative to the rows above: one entry that opens a colour
+    /// picker. Six near-identical rows in a context menu is the wrong shape when the teams
+    /// are told apart by colour and a restricted team is renamed after its class.
+    /// </summary>
+    private MenuItem? _changeTeam;
 
     public DashboardView()
     {
@@ -43,6 +63,83 @@ public partial class DashboardView : UserControl
         _session = session;
         _shell = shell;
         Players.ContextMenu = BuildPlayerMenu();
+        ApplyGameLabels();
+        GameProfile.Changed += OnGameProfileChanged;
+    }
+
+    /// <summary>
+    /// Point the team rows at the teams that actually exist. The menu is built once, so these
+    /// are relabelled in place rather than rebuilt -- rebuilding it while it is open is how the
+    /// menu used to close itself.
+    ///
+    /// The server's list wins when we have one: it knows the map's real team count and names,
+    /// which is the only way to be right about a six-team Deadliest Warrior mode, or to stop
+    /// offering "move to red" on an FFA map that has exactly one team. Without a list (a server
+    /// too old to send one) fall back to the usual two.
+    /// </summary>
+    private void ApplyGameLabels()
+    {
+        var teams = GameProfile.ServerTeams;
+
+        // Deadliest Warrior gets the picker instead of a stack of rows: its teams are read off
+        // the scoreboard by colour, and a team restricted to one class is renamed after that
+        // class, so the row labels alone do not say which team is which. Needs the server's
+        // list to have arrived — without it there is nothing to put in the dialog, so fall
+        // through to rows.
+        if (GameProfile.Current == GameFlavor.DeadliestWarrior && teams.Count > 0)
+        {
+            if (_changeTeam is not null) _changeTeam.IsVisible = true;
+            for (int slot = 0; slot < MaxTeams; slot++) HideTeamRow(slot);
+            return;
+        }
+
+        if (_changeTeam is not null) _changeTeam.IsVisible = false;
+
+        if (teams.Count == 0)
+        {
+            var (first, second) = GameProfile.TeamPair();
+            SetTeamRow(0, 0, first);
+            SetTeamRow(1, 1, second);
+            for (int slot = 2; slot < MaxTeams; slot++) HideTeamRow(slot);
+            return;
+        }
+
+        int used = 0;
+        foreach (var t in teams)
+        {
+            if (used >= MaxTeams) break;
+            SetTeamRow(used, t.Index, string.IsNullOrWhiteSpace(t.Name) ? $"team {t.Index}" : t.Name);
+            used++;
+        }
+        for (int slot = used; slot < MaxTeams; slot++) HideTeamRow(slot);
+    }
+
+    private void SetTeamRow(int slot, int teamIndex, string name)
+    {
+        if (_moveToTeam[slot] is not { } item) return;
+        _moveToTeamIndex[slot] = teamIndex;
+        item.Header = $"Move to {name}{ExtensionTag}";
+        item.IsVisible = true;
+    }
+
+    private void HideTeamRow(int slot)
+    {
+        _moveToTeamIndex[slot] = -1;
+        if (_moveToTeam[slot] is { } item) item.IsVisible = false;
+    }
+
+    private void OnGameProfileChanged()
+    {
+        if (!Dispatcher.UIThread.CheckAccess())
+        {
+            Dispatcher.UIThread.Post(OnGameProfileChanged);
+            return;
+        }
+
+        // Relabelling while the menu is open swaps the text under the cursor. It will be
+        // right the next time it opens.
+        if (Players.ContextMenu?.IsOpen == true) return;
+        ApplyGameLabels();
     }
 
     private Player? Selected => Players.SelectedItem as Player;
@@ -96,7 +193,9 @@ public partial class DashboardView : UserControl
     /// Marks menu entries that need the extended opcode set. AdminMod is XangMod's RCon
     /// lifted out verbatim, so anything tagged here works against either.
     /// </summary>
-    private const string ExtensionTag = " (XangMod / AdminMod)";
+    // The three mods share one RCon source, so an opcode is in all of them or in none.
+    // AdminModDW is the Deadliest Warrior build of the same code.
+    private const string ExtensionTag = " (XangMod / AdminMod / AdminModDW)";
 
     private ContextMenu BuildPlayerMenu()
     {
@@ -207,9 +306,31 @@ public partial class DashboardView : UserControl
         Item("Text mute", p => _session.Client.MutePlayerAsync(p.SteamId64, true), extension: true);
         Item("Text unmute", p => _session.Client.MutePlayerAsync(p.SteamId64, false), extension: true);
         Item("Force spectate", p => _session.Client.ForceSpectateAsync(p.SteamId64), extension: true);
-        // One entry per team beats asking an admin to remember that Mason is 1.
-        Item("Move to Agatha", p => _session.Client.SetTeamAsync(p.SteamId64, 0), extension: true);
-        Item("Move to Mason", p => _session.Client.SetTeamAsync(p.SteamId64, 1), extension: true);
+        // One entry per team beats asking an admin to remember that Mason is 1. Names and
+        // visibility come from the server's own team list in ApplyGameLabels -- the number of
+        // teams is a per-map, per-command-line fact, not something to hardcode.
+        for (int slot = 0; slot < MaxTeams; slot++)
+        {
+            int captured = slot;
+            _moveToTeam[slot] = Item("Move to team " + slot, p =>
+            {
+                int team = _moveToTeamIndex[captured];
+                return team < 0 ? Task.CompletedTask : _session.Client.SetTeamAsync(p.SteamId64, team);
+            }, extension: true);
+            _moveToTeam[slot]!.IsVisible = false;
+        }
+
+        _changeTeam = Item("Change team…", async p =>
+        {
+            var teams = GameProfile.ServerTeams;
+            if (teams.Count == 0) return;
+
+            var pick = await PickTeamDialog.ShowAsync(this, "Change team",
+                $"Move {p.Name} to:", teams);
+            if (pick is not null)
+                await _session.Client.SetTeamAsync(p.SteamId64, pick.Index);
+        }, extension: true);
+        _changeTeam.IsVisible = false;
         Item("Console command on player…", async p =>
         {
             var cmd = await Prompt.TextAsync(this, "Console command",

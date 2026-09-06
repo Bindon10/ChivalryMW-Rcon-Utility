@@ -35,9 +35,51 @@ public sealed record PlayerInfoEvent(
 
 public sealed record PlayerListEndEvent(int Count) : RconEvent;
 
+/// <summary>
+/// One playable team the server reported, by its real team index.
+///
+/// Name and ColorName are usually different things on a multi-team map: Deadliest Warrior
+/// renames a team to its class when it is restricted to one, so a six-team match reports
+/// "Vikings" / "Ninjas" while the scoreboard shows blue / black. ColorHex is the game's own
+/// team-text markup colour, e.g. "#388FF2". Both colour fields are empty against a server
+/// that does not send them.
+/// </summary>
+public sealed record ServerTeam(int Index, string Name, string ColorName = "", string ColorHex = "")
+{
+    /// <summary>
+    /// Colour first when we have one — that is what an admin reads off the scoreboard.
+    ///
+    /// An unrestricted team is already named after its colour ("Blue Team" for colour
+    /// "Blue"), so prefixing would read "Blue — Blue Team". Only prefix when the name says
+    /// something the colour does not, which is the class-restricted case ("Red — Ninja").
+    /// </summary>
+    public string Label
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(ColorName)) return Name;
+            if (string.IsNullOrWhiteSpace(Name)) return ColorName;
+            return Name.StartsWith(ColorName, StringComparison.OrdinalIgnoreCase)
+                ? Name
+                : $"{ColorName} — {Name}";
+        }
+    }
+}
+
+/// <summary>
+/// Reply to opcode 36. ModName, GameName and Teams are additions to the layout AdminMod ships
+/// and are empty against any server that predates them — which is itself informative, since
+/// AdminModDW has never shipped without them. See <see cref="GameProfile.NoteServerInfo"/>.
+///
+/// Teams is the live team list, not a guess: Deadliest Warrior runs one to six teams
+/// depending on the mode and the server's ?NumTeams= option, and the indices are not
+/// necessarily contiguous with the array they came from.
+/// </summary>
 public sealed record ServerInfoEvent(
     string MapName, int NumPlayers, int MaxPlayers,
-    bool MatchBegun, int NumSpectators) : RconEvent;
+    bool MatchBegun, int NumSpectators,
+    string ModName = "", string GameName = "",
+    IReadOnlyList<ServerTeam>? Teams = null) : RconEvent;
 
 /// <summary>Output of a ConsoleCommand. Vanilla discarded this; XangModRCon returns it.</summary>
 public sealed record ConsoleResultEvent(string Command, string Result) : RconEvent;
@@ -85,13 +127,12 @@ public sealed record UnknownEvent(ushort MessageType, byte[] Payload) : RconEven
 
 public static class Teams
 {
-    public static string Name(int teamId) => teamId switch
-    {
-        0 => "Agatha",
-        1 => "Mason",
-        2 => "FFA",
-        3 => "Spectator",
-        4 => "All",  // EFAC_ALL - all-chat / broadcasts
-        _ => $"Team {teamId}",
-    };
+    /// <summary>
+    /// Team name for the flavour currently connected. The tables live in
+    /// <see cref="GameProfile"/> -- Deadliest Warrior's EAOCFaction is a different enum, six
+    /// colour teams rather than two factions, so the same index means a different team.
+    /// </summary>
+    public static string Name(int teamId) => GameProfile.TeamName(teamId, GameProfile.Current);
+
+    public static string Name(int teamId, GameFlavor flavor) => GameProfile.TeamName(teamId, flavor);
 }

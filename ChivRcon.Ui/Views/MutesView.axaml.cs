@@ -96,12 +96,10 @@ public partial class MutesView : UserControl
         }
     }
 
-    private static string TeamName(int teamId) => teamId switch
-    {
-        0 => "Agatha",
-        1 => "Mason",
-        _ => "\u2014",
-    };
+    // One table, in Core, so this cannot drift from the roster -- and so a Deadliest
+    // Warrior server reads Blue/Red rather than Agatha/Mason.
+    private static string TeamName(int teamId) =>
+        teamId < 0 ? "\u2014" : Teams.Name(teamId);
 
     private void Render()
     {

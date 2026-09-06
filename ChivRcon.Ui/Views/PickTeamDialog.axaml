@@ -1,0 +1,31 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="ChivRcon.App.Views.PickTeamDialog"
+        Title="Change team"
+        Width="440" SizeToContent="Height"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
+        Background="{StaticResource BgWindow}">
+
+    <Border Padding="24,22" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+        <StackPanel Spacing="14">
+            <TextBlock x:Name="TitleText" FontSize="16" FontWeight="SemiBold"
+                       Foreground="{StaticResource TextPrimary}" />
+            <TextBlock x:Name="MessageText" Classes="hint" />
+
+            <!-- Rows are built in code with a FuncDataTemplate: the swatch colour comes from
+                 the server per team, so there is nothing for a compiled binding to type
+                 against in XAML. -->
+            <ListBox x:Name="TeamBox" HorizontalAlignment="Stretch" MaxHeight="280" />
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8" Margin="0,6,0,0">
+                <Button x:Name="CancelBtn" Classes="ghost" Height="34" Content="Cancel"
+                        Click="Cancel_Click" IsCancel="True" />
+                <Button x:Name="OkBtn" Classes="primary" Height="34" MinWidth="110"
+                        Padding="18,0" FontSize="13" Content="Move"
+                        Click="Ok_Click" IsDefault="True" />
+            </StackPanel>
+        </StackPanel>
+    </Border>
+</Window>

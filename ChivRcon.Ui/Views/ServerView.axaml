@@ -63,6 +63,11 @@
                             <CheckBox x:Name="SavePassword" Classes="compact" Content="Remember password" />
                             <CheckBox x:Name="AutoReconnectBox" Classes="compact"
                                       Content="Auto-reconnect" IsChecked="True" />
+                            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                <TextBlock Classes="label" Text="Game" VerticalAlignment="Center" />
+                                <ComboBox x:Name="GameBox" MinWidth="190"
+                                          SelectionChanged="Game_SelectionChanged" />
+                            </StackPanel>
                         </WrapPanel>
 
                         <WrapPanel ItemSpacing="12" LineSpacing="12" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" Margin="0,16,0,0">
@@ -74,7 +79,7 @@
                     </Grid>
 
                     <TextBlock Classes="hint" Margin="16,0,16,14"
-                               Text="RCON authenticates against [Engine.AccessControl] AdminPassword. The listener is a level actor, so the connection drops on every map change — auto-reconnect covers that." />
+                               Text="RCON authenticates against [Engine.AccessControl] AdminPassword. The listener is a level actor, so the connection drops on every map change — auto-reconnect covers that. Game only changes labels — team and class names differ between Medieval Warfare and Deadliest Warrior, the protocol does not — and it is corrected automatically once a player on the server has picked a class." />
                 </StackPanel>
             </Border>
         </StackPanel>

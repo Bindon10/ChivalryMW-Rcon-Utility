@@ -213,9 +213,14 @@ public sealed class RconClient : IDisposable
             .Build(RconMessageType.SetFrozen));
 
     /// <summary>
-    /// Move a player to another class on their current team. 0 Archer, 1 Man-at-Arms,
-    /// 2 Vanguard, 3 Knight, 4 Siege Engineer. immediate kills the pawn so it lands now
-    /// rather than on their next spawn.
+    /// Move a player to another class on their current team. immediate kills the pawn so it
+    /// lands now rather than on their next spawn.
+    ///
+    /// classIndex is EAOCClass on the server, and the two games do NOT share it:
+    /// Medieval Warfare is 0 Archer, 1 Man-at-Arms, 2 Vanguard, 3 Knight, 4 Siege Engineer;
+    /// Deadliest Warrior is 0 Samurai, 1 Spartan, 2 Viking, 3 Knight, 4 Ninja, 5 Pirate.
+    /// GameProfile.ClassNames is the table the UI labels its buttons from -- send an index
+    /// from there, not a remembered number.
     /// </summary>
     public Task SetClassAsync(ulong steamId64, int classIndex, bool immediate) =>
         SendAsync(new PacketBuilder().AddUInt64(steamId64).AddInt32(classIndex)
@@ -403,9 +408,39 @@ public sealed class RconClient : IDisposable
                     evt = new PlayerListEndEvent(r.ReadInt32());
                     break;
                 case RconMessageType.ServerInfo:
-                    evt = new ServerInfoEvent(r.ReadString(), r.ReadInt32(), r.ReadInt32(),
-                        r.ReadInt32() != 0, r.ReadInt32());
+                {
+                    // The last two fields are optional: a server older than them simply stops
+                    // the payload after NumSpectators, so read them only if there are bytes
+                    // left rather than assuming a length.
+                    string map = r.ReadString();
+                    int num = r.ReadInt32(), max = r.ReadInt32();
+                    bool begun = r.ReadInt32() != 0;
+                    int specs = r.ReadInt32();
+                    string mod = r.Remaining > 0 ? r.ReadString() : "";
+                    string game = r.Remaining > 0 ? r.ReadString() : "";
+
+                    // Then {count, (index, name) * count}, also optional.
+                    var teams = new List<ServerTeam>();
+                    if (r.Remaining > 0)
+                    {
+                        int teamCount = r.ReadInt32();
+                        for (int i = 0; i < teamCount && r.Remaining > 0; i++)
+                        {
+                            int idx = r.ReadInt32();
+                            string name = r.ReadString();
+                            // Colour pair is optional too, so a server that sends only
+                            // index+name still parses.
+                            string cName = r.Remaining > 0 ? r.ReadString() : "";
+                            string cHex = r.Remaining > 0 ? r.ReadString() : "";
+                            teams.Add(new ServerTeam(idx, name, cName, cHex));
+                        }
+                    }
+
+                    GameProfile.NoteServerInfo(mod, game);
+                    GameProfile.NoteServerTeams(teams);
+                    evt = new ServerInfoEvent(map, num, max, begun, specs, mod, game, teams);
                     break;
+                }
                 case RconMessageType.ConsoleResult:
                     evt = new ConsoleResultEvent(r.ReadString(), r.ReadString());
                     break;

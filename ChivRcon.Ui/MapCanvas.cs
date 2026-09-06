@@ -21,8 +21,10 @@ public sealed class MapCanvas : Control
 {
     private IReadOnlyList<PlayerPosEvent> _players = Array.Empty<PlayerPosEvent>();
 
-    private static readonly IBrush Agatha = Brush.Parse("#5B8FD6");
-    private static readonly IBrush Mason = Brush.Parse("#C4564E");
+    // Named by index rather than by faction: team 0 is Agatha in Medieval Warfare and Blue
+    // in Deadliest Warrior, team 1 is Mason and Red. The colours suit both.
+    private static readonly IBrush Team0 = Brush.Parse("#5B8FD6");
+    private static readonly IBrush Team1 = Brush.Parse("#C4564E");
     private static readonly IBrush Neutral = Brush.Parse("#9AA4B2");
     private static readonly IBrush DeadBrush = Brush.Parse("#4A5160");
     private static readonly IPen GridPen = new Pen(Brush.Parse("#2A2E37"), 1);
@@ -117,8 +119,8 @@ public sealed class MapCanvas : Control
             var at = new Point(px, py);
 
             IBrush fill = !p.Alive ? DeadBrush
-                        : p.TeamId == 0 ? Agatha
-                        : p.TeamId == 1 ? Mason
+                        : p.TeamId == 0 ? Team0
+                        : p.TeamId == 1 ? Team1
                         : Neutral;
 
             double r = p.Alive ? 6 : 4;

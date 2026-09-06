@@ -1,7 +1,26 @@
 using System.Text;
 using System.Text.Json;
+using ChivRcon.Core;
 
 namespace ChivRcon.App;
+
+/// <summary>
+/// Reads the stored game name back into a flavour.
+///
+/// Stored as a string rather than the enum because System.Text.Json writes bare enums as
+/// numbers here (no converter is configured), and a number in settings.json breaks the
+/// moment anyone reorders GameFlavor. Anything unrecognised falls back to Medieval Warfare,
+/// which is what every existing settings.json implies by having no Game key at all.
+/// </summary>
+public static class GameFlavors
+{
+    public static GameFlavor Parse(string? name) =>
+        string.Equals(name, nameof(GameFlavor.DeadliestWarrior), StringComparison.OrdinalIgnoreCase)
+            ? GameFlavor.DeadliestWarrior
+            : GameFlavor.Chivalry;
+
+    public static string Store(GameFlavor flavor) => flavor.ToString();
+}
 
 /// <summary>How a stored password is protected at rest. Swappable per platform.</summary>
 public interface ISecretProtector
@@ -45,6 +64,9 @@ public sealed class ServerBookmark
     public bool SavePassword { get; set; }
     public string PasswordB64 { get; set; } = "";
 
+    /// <summary>"Chivalry" or "DeadliestWarrior". See GameFlavors.</summary>
+    public string Game { get; set; } = nameof(GameFlavor.Chivalry);
+
     public string Password
     {
         get => PwCodec.Decode(PasswordB64);
@@ -63,6 +85,9 @@ public sealed class AppSettings
     public bool LogToFile { get; set; } = true;
     public bool ShowKills { get; set; } = true;
     public bool AutoReconnect { get; set; } = true;
+
+    /// <summary>Last game picked on the connection card. See GameFlavors.</summary>
+    public string Game { get; set; } = nameof(GameFlavor.Chivalry);
 
     public List<ServerBookmark> Bookmarks { get; set; } = new();
     public string LastBookmark { get; set; } = "";

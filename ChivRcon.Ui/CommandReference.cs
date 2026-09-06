@@ -13,7 +13,8 @@ public sealed record CommandRef(string Name, string Where, string Needs, string 
 ///
 /// "Needs" is the honest support level against the servers this is actually pointed at:
 /// stock Chivalry, or one running any of the mods that implement the extended opcode set
-/// -- BangMod, XangMod or the standalone AdminMod. They share the same RCon source, so a
+/// -- BangMod, XangMod, the standalone AdminMod, or AdminModDW on Deadliest Warrior. They
+/// share the same RCon source, so a
 /// command is either in all three or in none. Several entries began life in ChivAdmin's
 /// mutator, but these implement them, so that is what they require here -- the provenance
 /// is a note in the description rather than a separate support tier.
@@ -27,8 +28,10 @@ public static class CommandReference
     /// <summary>
     /// Any server running the shared extended-RCON code. Kept as one tier on purpose:
     /// AdminMod is XangMod's RCon lifted out verbatim, so the opcode coverage is identical.
+    /// AdminModDW is the Deadliest Warrior port of AdminMod: AOCRCon.uc is byte-for-byte the
+    /// same file in both SDKs, so the wire format and the opcode set are unchanged there too.
     /// </summary>
-    public const string XangMod = "BangMod / XangMod / AdminMod";
+    public const string XangMod = "BangMod / XangMod / AdminMod / AdminModDW";
 
     public static IReadOnlyList<CommandRef> All { get; } = new CommandRef[]
     {
@@ -57,8 +60,8 @@ public static class CommandReference
             "Silences the player in chat. XangMod drops the message server-side; vanilla only sets a flag that each client is trusted to honour, which Steam friends of the muted player ignore. Opcode 42."),
         new("Force spectate", Gestures.RosterMenu, XangMod,
             "Moves the player to the spectator team. Opcode 33."),
-        new("Move to Agatha / Move to Mason", Gestures.RosterMenu, XangMod,
-            "Kills the current pawn so the swap lands immediately rather than on next respawn. Needs the player to have picked a class already. Opcode 32."),
+        new("Move to <team> / Change team…", Gestures.RosterMenu, XangMod,
+            "Built from the server's live team list, which AdminModDW reports in SERVER_INFO — so an FFA map, which has exactly one team, offers one, and nothing offers a team the map does not have. On Medieval Warfare these are direct menu rows. On Deadliest Warrior it is a single \u201cChange team\u2026\u201d entry opening a colour picker instead, because up to six teams are told apart on the scoreboard by colour and a team restricted to one class is renamed after that class (\u201cVikings\u201d, \u201cNinjas\u201d) with nothing in the name saying which colour it is. Kills the current pawn so the swap lands immediately rather than on next respawn; needs the player to have picked a class already. Opcode 32. On Deadliest Warrior the player keeps their warrior class across the swap where the destination team allows it, and in Team Objective the pawn is not killed — the game swallows the force flag there."),
         new("Console command on player", Gestures.RosterMenu, XangMod,
             "Runs a command against that player's server-side controller — not their machine. e.g. setname NEWNAME. Opcode 28, scope 1. Verbs in XangModBlockedConsoleCommands (default quit, exit, debug) are refused — scope 1 runs in the server's process, so quit on a player quits the server."),
 

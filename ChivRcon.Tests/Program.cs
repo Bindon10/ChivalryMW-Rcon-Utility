@@ -194,6 +194,73 @@ client.Disconnect();
 listener.Stop();
 
 
+// ---- GameProfile: the two games share the protocol but not the meaning ----
+{
+    GameProfile.ResetDetection();
+    GameProfile.Current = GameFlavor.Chivalry;
+
+    Check(GameProfile.TeamName(1, GameFlavor.Chivalry) == "Mason", "team 1 is Mason on MW");
+    Check(GameProfile.TeamName(1, GameFlavor.DeadliestWarrior) == "Red", "team 1 is Red on DW");
+    Check(GameProfile.ClassNames(GameFlavor.Chivalry)[2] == "Vanguard", "class 2 is Vanguard on MW");
+    Check(GameProfile.ClassNames(GameFlavor.DeadliestWarrior)[2] == "Viking", "class 2 is Viking on DW");
+    Check(GameProfile.ClassNames(GameFlavor.DeadliestWarrior).Count == 6, "DW has six classes");
+
+    // An empty class name is what an unspawned player sends; it must not flip anything.
+    GameProfile.NoteClassName("");
+    Check(GameProfile.Detected is null, "empty class name detects nothing");
+
+    GameProfile.NoteClassName("CDWFamilyInfo_Viking");
+    Check(GameProfile.Detected == GameFlavor.DeadliestWarrior && GameProfile.Current == GameFlavor.DeadliestWarrior,
+          "CDWFamilyInfo_* detects Deadliest Warrior");
+    Check(Teams.Name(0) == "Blue", "Teams.Name follows the detected flavour");
+
+    GameProfile.NoteClassName("AOCFamilyInfo_Knight");
+    Check(GameProfile.Current == GameFlavor.Chivalry, "AOCFamilyInfo_* detects Medieval Warfare");
+
+    // SERVER_INFO is the authoritative source and arrives on connect, before anyone spawns.
+    GameProfile.ResetDetection();
+    GameProfile.Current = GameFlavor.Chivalry;
+    GameProfile.NoteServerInfo("AdminModDW", "DeadliestWarrior");
+    Check(GameProfile.Current == GameFlavor.DeadliestWarrior && GameProfile.DetectionIsAuthoritative,
+          "SERVER_INFO names Deadliest Warrior");
+
+    GameProfile.NoteClassName("AOCFamilyInfo_Knight");
+    Check(GameProfile.Current == GameFlavor.DeadliestWarrior,
+          "a class-name guess cannot overrule SERVER_INFO");
+
+    // An extended server predating the two fields can only be Medieval Warfare: AdminModDW
+    // has never shipped without them.
+    GameProfile.ResetDetection();
+    GameProfile.NoteServerInfo("", "");
+    Check(GameProfile.Current == GameFlavor.Chivalry,
+          "SERVER_INFO with no mod/game fields means Medieval Warfare");
+
+    // The server's own team list beats any table: DW runs 1-6 teams per mode.
+    GameProfile.ResetDetection();
+    GameProfile.Current = GameFlavor.DeadliestWarrior;
+    Check(GameProfile.TeamName(1, GameFlavor.DeadliestWarrior) == "Red", "falls back to the table with no server list");
+    GameProfile.NoteServerTeams(new[] { new ServerTeam(0, "Vikings"), new ServerTeam(1, "Samurai") });
+    Check(GameProfile.TeamName(1, GameFlavor.DeadliestWarrior) == "Samurai", "server team names win over the table");
+    Check(GameProfile.TeamName(4, GameFlavor.DeadliestWarrior) == "White", "unlisted index still falls back");
+    GameProfile.NoteServerTeams(new[] { new ServerTeam(0, "Everyone") });
+    Check(GameProfile.ServerTeams.Count == 1, "an FFA server reports exactly one team");
+
+    // Label: colour leads, because that is what the scoreboard shows. A class-renamed team
+    // carries both; a team whose name IS its colour must not read "Blue - Blue".
+    Check(new ServerTeam(5, "Ninjas", "Black", "#8b8b8b").Label == "Black — Ninjas",
+          "colour and name are both shown when they differ");
+    Check(new ServerTeam(0, "Blue", "Blue", "#388FF2").Label == "Blue",
+          "no duplication when the name is the colour");
+    Check(new ServerTeam(0, "Blue Team", "Blue", "#388FF2").Label == "Blue Team",
+          "no \"Blue - Blue Team\" when the name already leads with the colour");
+    Check(new ServerTeam(1, "Red Team").Label == "Red Team",
+          "falls back to the name when the server sends no colour");
+
+    GameProfile.ResetDetection();
+    GameProfile.Current = GameFlavor.Chivalry;
+}
+
+
 // The relay text-protocol tests were removed with RelayClient: XangModRCon serves
 // console commands, mute and game speed natively over RCON (opcodes 28, 42, 46).
 

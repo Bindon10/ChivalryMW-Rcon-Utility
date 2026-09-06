@@ -10,7 +10,7 @@
 
         <TextBlock Grid.Row="0" Classes="sectionTitle" Text="Map" />
         <TextBlock Grid.Row="1" Classes="hint" Margin="0,4,0,14" TextWrapping="Wrap"
-                   Text="Where everyone is, polled from the server. There is no map data to scale against, so the view auto-fits to the players themselves — the scale shifts as they spread out or bunch up. Blue is Agatha, red is Mason, grey is dead." />
+                   Text="Where everyone is, polled from the server. There is no map data to scale against, so the view auto-fits to the players themselves — the scale shifts as they spread out or bunch up. Blue is team 0 (Agatha, or Blue in Deadliest Warrior), red is team 1 (Mason, or Red), grey is dead." />
 
         <WrapPanel ItemSpacing="10" LineSpacing="10" Grid.Row="2" Margin="0,0,0,14">
             <Button x:Name="RefreshBtn" Classes="ghost" Height="34" MinWidth="100"

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- AvaloniaActivity derives from AppCompatActivity, so the theme must be an AppCompat one. -->
+  <style name="ChivRconTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
+    <item name="windowActionBar">false</item>
+    <item name="windowNoTitle">true</item>
+  </style>
+</resources>

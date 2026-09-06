@@ -1,5 +1,6 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.Threading;
 using ChivRcon.Core;
 
 namespace ChivRcon.App.Views;
@@ -23,7 +24,28 @@ public partial class TournamentView : UserControl
     {
         _session = session;
         _shell = shell;
+        ApplyGameLabels();
+        GameProfile.Changed += OnGameProfileChanged;
         UpdateAvailability();
+    }
+
+    /// <summary>Name the two score rows for the game we are talking to.</summary>
+    private void ApplyGameLabels()
+    {
+        var (first, second) = GameProfile.TeamPair();
+        Team0Label.Text = first;
+        Team1Label.Text = second;
+    }
+
+    private void OnGameProfileChanged()
+    {
+        if (!Dispatcher.UIThread.CheckAccess())
+        {
+            Dispatcher.UIThread.Post(OnGameProfileChanged);
+            return;
+        }
+
+        ApplyGameLabels();
     }
 
     public void UpdateAvailability()
@@ -77,8 +99,9 @@ public partial class TournamentView : UserControl
 
     private async void EndMatch_Click(object? sender, RoutedEventArgs e)
     {
+        var (first, second) = GameProfile.TeamPair();
         var team = await Prompt.TextAsync(this, "End match",
-            "Winning team (0 = Agatha, 1 = Mason, -1 = draw):", "-1");
+            $"Winning team (0 = {first}, 1 = {second}, -1 = draw):", "-1");
         if (team is null || !int.TryParse(team, out int teamId)) return;
 
         var reason = await Prompt.TextAsync(this, "End match", "Reason shown to players:",
@@ -93,13 +116,14 @@ public partial class TournamentView : UserControl
 
     private async void ApplyScore_Click(object? sender, RoutedEventArgs e)
     {
-        int agatha = (int)(AgathaScore.Value ?? 0);
-        int mason = (int)(MasonScore.Value ?? 0);
+        int team0 = (int)(Team0Score.Value ?? 0);
+        int team1 = (int)(Team1Score.Value ?? 0);
+        var (first, second) = GameProfile.TeamPair();
 
         // Two opcodes rather than one: SET_TEAM_SCORE is per team, and keeping it that way
         // means the client is not inventing a combined verb the protocol does not have.
-        await Guarded(() => _session.Client.SetTeamScoreAsync(0, agatha), $"Agatha score -> {agatha}");
-        await Guarded(() => _session.Client.SetTeamScoreAsync(1, mason), $"Mason score -> {mason}");
+        await Guarded(() => _session.Client.SetTeamScoreAsync(0, team0), $"{first} score -> {team0}");
+        await Guarded(() => _session.Client.SetTeamScoreAsync(1, team1), $"{second} score -> {team1}");
     }
 
     // ---------------- speed ----------------

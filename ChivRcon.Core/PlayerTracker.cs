@@ -212,6 +212,13 @@ public sealed class PlayerTracker
         p.TeamDamage = e.TeamDamageDealt;
         p.ClassName = e.ClassName;
         p.IsSpectator = e.IsSpectator;
+
+        // The family class name is the only thing on the wire that names the game:
+        // CDWFamilyInfo_* is Deadliest Warrior, AOCFamilyInfo_* is Medieval Warfare. Empty
+        // until someone has picked a class, so this refines the bookmark rather than
+        // replacing it.
+        GameProfile.NoteClassName(e.ClassName);
+
         return p;
     }
 

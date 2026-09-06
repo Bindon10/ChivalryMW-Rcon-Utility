@@ -244,9 +244,15 @@ public partial class AppShell : UserControl, IShell
             _console.ClearMaps();
             _session.OpenLogFile();
             _session.Audit.Server = $"{host}:{port}";
+            GameProfile.ResetDetection();
             await _session.Client.ConnectAsync(host, port, password);
             _session.Append($"Connected to {host}:{port}", Palette.Success);
             _session.Audit.RecordSent("CONNECT", $"{host}:{port}");
+
+            // Settles which game this is before anyone has spawned. A vanilla server ignores
+            // it, which is why this is not awaited for correctness -- the bookmark setting
+            // stands until something says otherwise.
+            await _session.Client.RequestServerInfoAsync();
         }
         catch (Exception ex)
         {
@@ -288,6 +294,7 @@ public partial class AppShell : UserControl, IShell
             await _session.Client.ConnectAsync(
                 _server.Host, _server.Port, _server.Password, TimeSpan.FromSeconds(5));
             _session.Append($"Reconnected to {_server.Host}:{_server.Port}", Palette.Success);
+            await _session.Client.RequestServerInfoAsync();
         }
         catch
         {
@@ -368,6 +375,13 @@ public partial class AppShell : UserControl, IShell
                 log.Append($"Server: {e.MapName} - {e.NumPlayers}/{e.MaxPlayers} players, "
                     + $"{e.NumSpectators} spectating, match {(e.MatchBegun ? "in progress" : "not started")}",
                     Palette.Highlight);
+                if (!string.IsNullOrEmpty(e.ModName))
+                    log.Append($"Running {e.ModName}"
+                        + (string.IsNullOrEmpty(e.GameName) ? "" : $" on {e.GameName}")
+                        + (e.Teams is { Count: > 0 }
+                            ? $" - teams: {string.Join(", ", e.Teams.Select(t => $"{t.Index} {t.Name}"))}"
+                            : ""),
+                        Palette.Highlight);
                 break;
             case UnknownEvent e:
                 log.Append($"Unknown message type {e.MessageType} ({e.Payload.Length} bytes)", Palette.Danger);
