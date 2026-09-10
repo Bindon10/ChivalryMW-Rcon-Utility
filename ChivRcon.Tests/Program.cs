@@ -38,6 +38,20 @@ Check(SteamId.TryParse("76561197971111111", out var p2) && p2 == 765611979711111
 var qw = new PacketBuilder().AddUInt64(sid).Build(RconMessageType.Suicide);
 Check(qw[6] == 0x01 && qw[7] == 0x10 && qw[8] == 0x00 && qw[9] == 0x01, "qword: Uid.B (0x01100001) first");
 
+// A console kickban stores only a uid, so the ban list leans on the community profile XML
+// for a name. Pin the parse against the real markup; the network path is not tested here.
+Check(SteamNames.Extract("<profile><steamID><![CDATA[Sir Loin]]></steamID></profile>") == "Sir Loin",
+      "steam profile xml: CDATA persona name");
+Check(SteamNames.Extract("<profile><steamID>Plain Name</steamID></profile>") == "Plain Name",
+      "steam profile xml: bare persona name");
+Check(SteamNames.Extract("<profile><steamID><![CDATA[Tom &amp; Jerry]]></steamID></profile>") == "Tom & Jerry",
+      "steam profile xml: entities decoded");
+Check(SteamNames.Extract("<response><error>The specified profile could not be found.</error></response>") == "",
+      "steam profile xml: error document yields no name");
+Check(SteamNames.Extract("") == "", "steam profile xml: empty body yields no name");
+Check(SteamNames.ProfileUrl(76561199538384235UL) == "https://steamcommunity.com/profiles/76561199538384235",
+      "steam profile url");
+
 // ---------- mock server integration ----------
 const string Password = "s3cretAdmin";
 var listener = new TcpListener(IPAddress.Loopback, 0);

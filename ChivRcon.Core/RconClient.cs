@@ -449,9 +449,17 @@ public sealed class RconClient : IDisposable
                         r.ReadInt32(), r.ReadString(), r.ReadString());
                     break;
                 case RconMessageType.MuteInfo:
-                    evt = new MuteInfoEvent(r.ReadUInt64(), r.ReadString(), r.ReadInt32(),
-                        r.ReadInt32() != 0);
+                {
+                    // The trailing "stored" flag is an AdminMod 1.4 addition; older servers
+                    // stop after Online and everything they send is stored by definition.
+                    ulong muteId = r.ReadUInt64();
+                    string muteName = r.ReadString();
+                    int muteTeam = r.ReadInt32();
+                    bool muteOnline = r.ReadInt32() != 0;
+                    bool muteStored = r.Remaining < 4 || r.ReadInt32() != 0;
+                    evt = new MuteInfoEvent(muteId, muteName, muteTeam, muteOnline, muteStored);
                     break;
+                }
                 case RconMessageType.MuteListEnd:
                     evt = new MuteListEndEvent(r.ReadInt32());
                     break;

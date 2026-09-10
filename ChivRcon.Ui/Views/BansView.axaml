@@ -10,7 +10,7 @@
 
         <TextBlock Grid.Row="0" Classes="sectionTitle" Text="Bans" />
         <TextBlock Grid.Row="1" Classes="hint" Margin="0,4,0,16"
-                   Text="Live from the server's own ban list. Vanilla RCON has no way to send this, so the page stays empty without XangMod." />
+                   Text="Live from the server's own ban lists — the named list, the uid list a console kickban writes, and any IP policies. Vanilla RCON has no way to send this, so the page stays empty without AdminMod / AdminModDW / XangMod." />
 
         <Border Grid.Row="2" Classes="card" Padding="0" ClipToBounds="True">
             <!-- 790px of columns will not fit a phone; header and rows scroll as one. -->
@@ -55,6 +55,10 @@
                     Content="Refresh" Click="Refresh_Click" />
             <Button x:Name="UnbanBtn" Classes="primary" Height="34" MinWidth="150"
                     Content="Unban selected" Click="Unban_Click" />
+            <Button x:Name="ProfileBtn" Classes="ghost" Height="34" MinWidth="130"
+                    Content="Steam profile" Click="Profile_Click" />
+            <CheckBox x:Name="LookupBox" Classes="compact" VerticalAlignment="Center"
+                      Content="Look up names on Steam" />
             <TextBlock x:Name="StatusText" Classes="hint" VerticalAlignment="Center"
                        Margin="8,0,0,0" Text="" />
         </WrapPanel>

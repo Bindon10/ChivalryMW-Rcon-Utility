@@ -86,6 +86,13 @@ public sealed class AppSettings
     public bool ShowKills { get; set; } = true;
     public bool AutoReconnect { get; set; } = true;
 
+    /// <summary>
+    /// Let the bans and mutes pages ask steamcommunity.com for a persona name when the
+    /// server has none -- a console kickban records only the uid. No API key, but it is an
+    /// outbound request per unknown id, so it is switchable.
+    /// </summary>
+    public bool LookUpSteamNames { get; set; } = true;
+
     /// <summary>Last game picked on the connection card. See GameFlavors.</summary>
     public string Game { get; set; } = nameof(GameFlavor.Chivalry);
 

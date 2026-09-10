@@ -97,11 +97,18 @@ public partial class TournamentView : UserControl
         await Guarded(() => _session.Client.RestartMatchAsync(), "Restart match");
     }
 
+    /// <summary>
+    /// The team number does NOT decide who wins. AOCGame.EndGame opens with
+    /// "WinningTeam = GetWinningTeam()" and takes the result off the live scores, so all this
+    /// picks is whose top scorer is spotlighted on the end screen. To actually hand a team the
+    /// match, set the scores first (Team scores, below) and then end it.
+    /// </summary>
     private async void EndMatch_Click(object? sender, RoutedEventArgs e)
     {
         var (first, second) = GameProfile.TeamPair();
         var team = await Prompt.TextAsync(this, "End match",
-            $"Winning team (0 = {first}, 1 = {second}, -1 = draw):", "-1");
+            $"Spotlight the top scorer from which team? (0 = {first}, 1 = {second}, -1 = let the server pick).\n"
+            + "The winner itself comes from the current scores, not from this.", "-1");
         if (team is null || !int.TryParse(team, out int teamId)) return;
 
         var reason = await Prompt.TextAsync(this, "End match", "Reason shown to players:",
@@ -109,7 +116,7 @@ public partial class TournamentView : UserControl
         if (reason is null) return;
 
         await Guarded(() => _session.Client.EndMatchAsync(teamId, reason),
-            $"End match (winner {teamId}): {reason}");
+            $"End match (spotlight team {teamId}): {reason}");
     }
 
     // ---------------- score ----------------

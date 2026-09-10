@@ -25,6 +25,13 @@ public partial class MutesView : UserControl
     private Session _session = null!;
     private IShell _shell = null!;
 
+    /// <summary>Bumped per request so a late reply to a superseded one cannot overwrite the status.</summary>
+    private int _requestId;
+    private bool _awaitingEnd;
+
+    /// <summary>Set while the checkbox is being synced from settings, so it does not save back.</summary>
+    private bool _syncingLookup;
+
     public MutesView()
     {
         InitializeComponent();
@@ -36,12 +43,39 @@ public partial class MutesView : UserControl
         _session = session;
         _shell = shell;
         _session.Client.EventReceived += OnEvent;
+        SyncLookupBox();
+        LookupBox.IsCheckedChanged += Lookup_Changed;
         UpdateAvailability();
+    }
+
+    /// <summary>One switch, held in Core, so this page and the bans page cannot disagree.</summary>
+    private void SyncLookupBox()
+    {
+        _syncingLookup = true;
+        SteamNames.Enabled = _session.Settings.LookUpSteamNames;
+        LookupBox.IsChecked = SteamNames.Enabled;
+        _syncingLookup = false;
+    }
+
+    private void Lookup_Changed(object? sender, RoutedEventArgs e)
+    {
+        if (_syncingLookup) return;
+
+        bool on = LookupBox.IsChecked == true;
+        SteamNames.Enabled = on;
+        _session.Settings.LookUpSteamNames = on;
+        _session.SaveSettings();
+
+        if (!on) return;
+
+        SteamNames.ClearFailures();
+        _ = ResolveNamesAsync(_requestId);
     }
 
     /// <summary>Called when the page is navigated to, so the list is never stale on arrival.</summary>
     public void RefreshIfConnected()
     {
+        SyncLookupBox();
         UpdateAvailability();
         if (_session.Client.State == RconState.Connected) _ = RefreshAsync();
         else StatusText.Text = "Not connected.";
@@ -50,7 +84,7 @@ public partial class MutesView : UserControl
     public void UpdateAvailability()
     {
         bool connected = _session.Client.State == RconState.Connected;
-        RefreshBtn.IsEnabled = UnmuteBtn.IsEnabled = connected;
+        RefreshBtn.IsEnabled = UnmuteBtn.IsEnabled = ProfileBtn.IsEnabled = connected;
         if (!connected) _rows.Clear();
     }
 
@@ -62,10 +96,19 @@ public partial class MutesView : UserControl
             return;
         }
 
+        int id = ++_requestId;
         _pending.Clear();
+        _awaitingEnd = true;
         StatusText.Text = "Requesting\u2026";
         try { await _session.Client.RequestMuteListAsync(); }
-        catch (Exception ex) { StatusText.Text = ex.Message; }
+        catch (Exception ex) { StatusText.Text = ex.Message; _awaitingEnd = false; return; }
+
+        // Same reasoning as the ban list: no answer at all reads exactly like "nobody is
+        // muted", and only one of those is a server the tool can actually administer.
+        await Task.Delay(TimeSpan.FromSeconds(5));
+        if (id == _requestId && _awaitingEnd && _session.Client.State == RconState.Connected)
+            StatusText.Text = "No reply to the mute-list request \u2014 this server does not implement "
+                            + "opcode 62. It is running stock RCON, or a mod build older than AdminMod 1.4.";
     }
 
     private void OnEvent(RconEvent evt)
@@ -83,8 +126,10 @@ public partial class MutesView : UserControl
                 break;
 
             case MuteListEndEvent end:
+                _awaitingEnd = false;
                 Render();
                 StatusText.Text = end.Count == 0 ? "Nobody is muted." : $"{end.Count} mute(s).";
+                _ = ResolveNamesAsync(_requestId);
                 break;
 
             // Any admin's mute change invalidates this list, including a re-apply fired by
@@ -101,6 +146,31 @@ public partial class MutesView : UserControl
     private static string TeamName(int teamId) =>
         teamId < 0 ? "\u2014" : Teams.Name(teamId);
 
+    private static bool IsPlaceholder(string name) => string.IsNullOrWhiteSpace(name);
+
+    private static string DisplayName(MuteInfoEvent m)
+    {
+        if (IsPlaceholder(m.Name) && SteamNames.TryGetCached(m.SteamId64, out var looked))
+            return looked;
+
+        return string.IsNullOrWhiteSpace(m.Name) ? "(unnamed)" : m.Name;
+    }
+
+    /// <summary>Same as the bans page: rows first, names when the lookup lands.</summary>
+    private async Task ResolveNamesAsync(int id)
+    {
+        if (!SteamNames.Enabled) return;
+
+        var unknown = _pending
+            .Where(m => m.SteamId64 != 0 && IsPlaceholder(m.Name))
+            .Select(m => m.SteamId64)
+            .ToList();
+
+        if (unknown.Count == 0) return;
+        if (!await SteamNames.ResolveAsync(unknown)) return;
+        if (id == _requestId) Render();
+    }
+
     private void Render()
     {
         _rows.Clear();
@@ -108,13 +178,15 @@ public partial class MutesView : UserControl
         // Online first: those are the ones an admin is likely acting on right now.
         foreach (var m in _pending
                      .OrderByDescending(m => m.Online)
-                     .ThenBy(m => m.Name, StringComparer.OrdinalIgnoreCase))
+                     .ThenBy(DisplayName, StringComparer.OrdinalIgnoreCase))
         {
             _rows.Add(new MuteRow(
                 m.SteamId64,
-                string.IsNullOrWhiteSpace(m.Name) ? "(unnamed)" : m.Name,
+                DisplayName(m),
                 SteamId.ToSteam3(m.SteamId64),
-                m.Online ? "Online" : "Offline",
+                // "not stored" is a live in-game admin mute the mod never recorded: real, but
+                // gone the moment that player disconnects.
+                m.Online ? (m.Stored ? "Online" : "Online (not stored)") : "Offline",
                 m.Online ? TeamName(m.TeamId) : "\u2014",
                 m.Online));
         }
@@ -123,6 +195,31 @@ public partial class MutesView : UserControl
     }
 
     private async void Refresh_Click(object? sender, RoutedEventArgs e) => await RefreshAsync();
+
+    private async void Profile_Click(object? sender, RoutedEventArgs e)
+    {
+        var targets = Mutes.SelectedItems?.Cast<MuteRow>().Where(m => m.SteamId64 != 0).ToList()
+                      ?? new List<MuteRow>();
+
+        if (targets.Count == 0)
+        {
+            StatusText.Text = "Select a mute first.";
+            return;
+        }
+
+        if (targets.Count > 5)
+        {
+            StatusText.Text = $"{targets.Count} selected \u2014 pick 5 or fewer to open profiles.";
+            return;
+        }
+
+        foreach (var m in targets)
+            await OpenLink.InBrowserAsync(this, SteamNames.ProfileUrl(m.SteamId64));
+
+        StatusText.Text = targets.Count == 1
+            ? $"Opened the Steam profile for {targets[0].Name}."
+            : $"Opened {targets.Count} Steam profiles.";
+    }
 
     private async void Unmute_Click(object? sender, RoutedEventArgs e)
     {

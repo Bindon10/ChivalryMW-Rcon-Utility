@@ -91,13 +91,18 @@ public sealed record BanInfoEvent(
 public sealed record BanListEndEvent(int Count) : RconEvent;
 
 /// <summary>
-/// One stored text mute. The server keeps these in its ini like bans, so a mute survives
-/// the player reconnecting and the server restarting. <paramref name="Online"/> is false
-/// for someone currently disconnected, in which case <paramref name="Name"/> is whatever
-/// they were called when muted and <paramref name="TeamId"/> is -1.
+/// One text mute. The server keeps these in its ini like bans, so a mute survives the player
+/// reconnecting and the server restarting. <paramref name="Online"/> is false for someone
+/// currently disconnected, in which case <paramref name="Name"/> is whatever they were called
+/// when muted and <paramref name="TeamId"/> is -1.
+///
+/// <paramref name="Stored"/> is false for a live mute the mod did not record -- an in-game
+/// admin mute goes straight to AOCPRI.bIsAdminMuted through ServerAdminMutePlayer and never
+/// reaches the stored list, so it is real but lasts only until the player leaves. Servers
+/// older than AdminMod 1.4 omit the field, and it reads as stored, which is what they meant.
 /// </summary>
 public sealed record MuteInfoEvent(
-    ulong SteamId64, string Name, int TeamId, bool Online) : RconEvent;
+    ulong SteamId64, string Name, int TeamId, bool Online, bool Stored = true) : RconEvent;
 
 public sealed record MuteListEndEvent(int Count) : RconEvent;
 

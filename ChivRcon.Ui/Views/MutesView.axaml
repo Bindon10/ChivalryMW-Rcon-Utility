@@ -10,7 +10,7 @@
 
         <TextBlock Grid.Row="0" Classes="sectionTitle" Text="Mutes" />
         <TextBlock Grid.Row="1" Classes="hint" Margin="0,4,0,16"
-                   Text="Stored text mutes, offline players included. Mutes persist in the server's ini like bans, so they survive a reconnect and a restart. Vanilla RCON cannot send this list, so the page stays empty without BangMod / XangMod / AdminMod." />
+                   Text="Stored text mutes, offline players included — plus any live in-game admin mute the mod never recorded, marked &quot;not stored&quot;. Stored mutes persist in the server's ini like bans, so they survive a reconnect and a restart. Vanilla RCON cannot send this list, so the page stays empty without AdminMod / AdminModDW / XangMod." />
 
         <Border Grid.Row="2" Classes="card" Padding="0" ClipToBounds="True">
             <!-- Same scroll-as-one treatment as the ban list; these columns will not fit a phone. -->
@@ -53,6 +53,10 @@
                     Content="Refresh" Click="Refresh_Click" />
             <Button x:Name="UnmuteBtn" Classes="primary" Height="34" MinWidth="150"
                     Content="Unmute selected" Click="Unmute_Click" />
+            <Button x:Name="ProfileBtn" Classes="ghost" Height="34" MinWidth="130"
+                    Content="Steam profile" Click="Profile_Click" />
+            <CheckBox x:Name="LookupBox" Classes="compact" VerticalAlignment="Center"
+                      Content="Look up names on Steam" />
             <TextBlock x:Name="StatusText" Classes="hint" VerticalAlignment="Center"
                        Margin="8,0,0,0" Text="" />
         </WrapPanel>
